@@ -496,13 +496,13 @@ with tab2:
     #df2
     #df2['Net tension stress'] = pd.to_numeric(df2['Net tension stress'], errors='coerce')
     mask = df2['Net tension stress'] == 0.000000
-    design_wall2 = df2.loc[mask] 
+    design_wall = df2.loc[mask]
     st.markdown("Walls to be designed using simplified method")
-    st.dataframe(design_wall2)
+    st.dataframe(design_wall)
 
 with tab3:
-    design_wall2
-    df=design_wall2
+    df=design_wall
+    df.set_index(['Story', 'Pier'], inplace=True)
     unique_stories = df.index.get_level_values('Story').unique()
     selected_story = st.selectbox("Select a Story:", unique_stories)
     unique_piers = df.index.get_level_values('Pier').unique()
@@ -789,6 +789,11 @@ with tab3:
             st.markdown('<p style="color: red;">Restraint required for vertical bars (cl11.7.4(d(ii)))</p>', unsafe_allow_html=True)    
 
 with tab4:
+    df_col=design_col2
+    st.dataframe(df_col)
+
+
+with tab5:
 
     st.markdown("<p style='font-size:40px;'>Contact me</p>", unsafe_allow_html=True)
 
