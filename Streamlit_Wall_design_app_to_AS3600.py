@@ -502,14 +502,17 @@ with tab2:
 
 with tab3:
     df=design_wall
-    df.set_index(['Story', 'Pier'], inplace=True)
-    unique_stories = df.index.get_level_values('Story').unique()
-    selected_story = st.selectbox("Select a Story:", unique_stories)
-    unique_piers = df.index.get_level_values('Pier').unique()
-    selected_pier = st.selectbox("Select a Pier:", unique_piers)
+    df.set_index(['Pier',df.index], inplace=True)
+    st.markdown("Walls with no tensile stresses")
+    st.dataframe(df)
+    #df2=df.index
+    #st.dataframe(df2)
+    unique_stories = df.index.get_level_values('Pier').unique()
+    selected_story = st.selectbox("Select a Pier:", unique_stories)
+    unique_piers = df.index.get_level_values('Story').unique()
+    selected_pier = st.selectbox("Select a Story:", unique_piers)
 
     col1, col2 = st.columns([1,2])
-
     with col2:
         try:
             Pier_forces = df.loc[(selected_story, selected_pier)]
@@ -524,9 +527,9 @@ with tab3:
         st.write("<u>1. DESIGN AXIAL CAPACITY CHECK (φNu)</u>",unsafe_allow_html=True)
         st.caption(""" ##### Design Assumptions: 
 
-        (a): Vertical and horizontal reinforcement is provided on both wall faces and divided equally between the two wall faces.
+    (a): Vertical and horizontal reinforcement is provided on both wall faces and divided equally between the two wall faces.
 
-        (b): Have a ratio of effective height to thickness that does not exceed 30 for doubly reinforced walls.""")
+    (b): Have a ratio of effective height to thickness that does not exceed 30 for doubly reinforced walls.""")
 
         if Soil_classification == "De - Deep or soft soil":
             st.markdown("Simplified design method for compression forces does not apply (cl.11.5.2(c)), design wall as column as per AS3600:2018 Section 10")
@@ -786,11 +789,20 @@ with tab3:
         if fc<51:
             st.write('<p style="color: green;">Restraint not required for vertical bars (cl11.7.4(c))</p>', unsafe_allow_html=True)
         elif fc>51:
-            st.markdown('<p style="color: red;">Restraint required for vertical bars (cl11.7.4(d(ii)))</p>', unsafe_allow_html=True)    
-
+            st.markdown('<p style="color: red;">Restraint required for vertical bars (cl11.7.4(d(ii)))</p>', unsafe_allow_html=True)
+    
 with tab4:
-    df_col=design_col2
-    st.dataframe(df_col)
+    df2=design_col
+    df2.set_index(['Pier',df2.index], inplace=True)
+    st.markdown("Walls with tensile stresses")
+    st.dataframe(df2)
+    #df2=df.index
+    #st.dataframe(df2)
+    unique_stories = df2.index.get_level_values('Pier').unique()
+    selected_story = st.selectbox("Select a Pier:", unique_stories)
+    unique_piers = df2.index.get_level_values('Story').unique()
+    selected_pier = st.selectbox("Select a Story:", unique_piers)
+
 
 
 with tab5:
