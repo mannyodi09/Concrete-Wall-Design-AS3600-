@@ -31,19 +31,16 @@ with tab2:
     uploaded_file = st.file_uploader("ETABS storey heights:", type=["xlsx"])
     if uploaded_file is not None:
         df_storey_heights = pd.read_excel(uploaded_file)
-        #df = df.set_index(['Story','Pier'])
-        #df = df.drop('Unnamed: 0', axis=1)
-        #pd.set_option('display.max_columns',None)
-        #pd.set_option('display.max_rows',None)
-        #st.dataframe(df)
     Ductility_factor = st.selectbox("Select Ductility factor (μ):", options=('1','2','3'))
     Sturctural_performance_factor = st.selectbox("Sturctural performance factor (Sp):", options=('0.67','0.77','1'))
     Soil_classification = st.selectbox("Site soil classification:", options=('Ae - Strong rock','Be - Rock','Ce - Shallow soil', 'De - Deep or soft soil', 'Ee - Very soft soil'))
 
     df_forces2 = df_forces.drop([0], axis=0)
+    st.markdown("ETABS Pier Forces")
     st.dataframe(df_forces2)
     mask=df_forces2['Case Type'] == 'Combination'
     df_combos = df_forces2.loc[mask]
+    st.markdown("Combination Load Cases")
     st.dataframe(df_combos)
 
     #MAX TENSION IN PIERS CHECK
@@ -53,17 +50,17 @@ with tab2:
     p_tens_loc = p_tens.groupby(["Story","Pier"])["P"].groups
     p_tens_idxmax = p_tens.groupby(["Story","Pier"])["P"].idxmax()
     p_tens_max = p_tens.loc[p_tens_idxmax]
-    st.dataframe(p_tens_max)
+    #st.dataframe(p_tens_max)
     p_tens_max = p_tens_max.set_index("Story")
 
-    st.dataframe(df_storey_heights)
+    #st.dataframe(df_storey_heights)
     df_story_height = df_storey_heights.drop([0], axis=0)
     df_story_height2 = df_story_height.drop(['Master Story',
                                             'Similar To',
                                             'Splice Story',
                                             'Splice Height',
                                             'Color','GUID'], axis=1)
-    st.dataframe(df_story_height2)
+    #st.dataframe(df_story_height2)
 
     df_story=df_story_height2
     Story_list = df_story['Name'].tolist()
@@ -72,7 +69,7 @@ with tab2:
     story_categorical = pd.CategoricalDtype(stories, ordered=True)
     p_tens_max.index = p_tens_max.index.astype(story_categorical)
     p_tens_dtype = p_tens_max.sort_index()
-    st.dataframe(p_tens_dtype)
+    #st.dataframe(p_tens_dtype)
 
     #MIN COMPRESSION IN PIERS CHECK
     mask = df_combos['P'] < 0
@@ -89,7 +86,7 @@ with tab2:
     story_categorical = pd.CategoricalDtype(stories, ordered=True)
     p_tens_max2.index = p_tens_max2.index.astype(story_categorical)
     p_tens2_dtype = p_tens_max2.sort_index()
-    st.dataframe(p_tens2_dtype)
+    #st.dataframe(p_tens2_dtype)
 
     #MAX COMPRESSION IN PIERS CHECK
     mask = df_combos['P'] < 0
@@ -98,17 +95,17 @@ with tab2:
     p_compr_loc = p_compr.groupby(["Story","Pier"])["P"].groups
     p_compr_idxmax = p_compr.groupby(["Story","Pier"])["P"].idxmin()
     p_compr_max = p_compr.loc[p_compr_idxmax]
-    st.dataframe(p_compr_max)
+    #st.dataframe(p_compr_max)
     p_compr_max = p_compr_max.set_index("Story")
 
-    st.dataframe(df_storey_heights)
+    #st.dataframe(df_storey_heights)
     df_story_height = df_storey_heights.drop([0], axis=0)
     df_story_height2 = df_story_height.drop(['Master Story',
                                             'Similar To',
                                             'Splice Story',
                                             'Splice Height',
                                             'Color','GUID'], axis=1)
-    st.dataframe(df_story_height2)
+    #st.dataframe(df_story_height2)
 
     df_story=df_story_height2
     Story_list = df_story['Name'].tolist()
@@ -117,7 +114,7 @@ with tab2:
     story_categorical = pd.CategoricalDtype(stories, ordered=True)
     p_compr_max.index = p_compr_max.index.astype(story_categorical)
     p_compr_dtype = p_compr_max.sort_index()
-    st.dataframe(p_compr_dtype)
+    #st.dataframe(p_compr_dtype)
 
     #MAX M3 IN PIERS CHECK
     df_combos['M3'] = pd.to_numeric(df_combos['M3'], errors='coerce')
@@ -127,7 +124,7 @@ with tab2:
     m3_max = m3_max.set_index("Story")
     m3_max.index = m3_max.index.astype(story_categorical)
     m3_dtype = m3_max.sort_index()
-    st.dataframe(m3_dtype)
+    #st.dataframe(m3_dtype)
 
     #MAX V2 IN PIERS CHECK
     df_combos['V2'] = pd.to_numeric(df_combos['V2'], errors='coerce')
@@ -137,7 +134,7 @@ with tab2:
     v2_max = v2_max.set_index("Story")
     v2_max.index = v2_max.index.astype(story_categorical)
     v2_dtype = v2_max.sort_index()
-    st.dataframe(v2_dtype)
+    #st.dataframe(v2_dtype)
 
     #MERGE DATAFRAMES
     p_tens_ = p_tens_dtype.drop(["Case Type","Step Type","Location"], axis=1)
@@ -149,23 +146,23 @@ with tab2:
     p_t_merged = tens_compr_merge.sort_index()
 
     p_t_m3 = p_t_merged.merge(m3_,on=["Story","Pier"],how='outer')
-    st.dataframe(p_t_merged)
+    #st.dataframe(p_t_merged)
 
     p_t_m3_v2 = p_t_m3.merge(v2_,on=["Story","Pier"],how='outer', suffixes=('_x1','_y1'))
     df_combined = p_t_m3_v2
-    st.dataframe(df_combined)
+    #st.dataframe(df_combined)
 
     ##Story heights
     story_prop=df_story_height2
     story_properties = story_prop.iloc[:-1]
     story_prop3=story_properties.rename(columns={"Name":"Story"})
     story_prop4=story_prop3.set_index("Story")
-    st.dataframe(story_prop4)
+    #st.dataframe(story_prop4)
     df_combined2 = df_combined.merge(story_prop4,on=["Story"],how='outer')
-    st.dataframe(df_combined2)
+    #st.dataframe(df_combined2)
 
     ##Sort index
-    st.dataframe(df_pier_props)
+    #st.dataframe(df_pier_props)
     df_pier_prop = df_pier_props.drop([0], axis=0)
     pier_props = df_pier_prop.drop(['AxisAngle',
                                     '# Area Objects',
@@ -181,14 +178,14 @@ with tab2:
                                     'CG Top Z'], axis=1)
     pier_props1=pier_props.set_index("Story")
     df_combined3 = df_combined2.merge(pier_props,on=["Story","Pier"],how='outer')
-    st.dataframe(df_combined3)
+    #st.dataframe(df_combined3)
 
     df_combined3.index = df_combined3.index.astype(story_categorical)
     walls_df = df_combined3.sort_index()
     walls_df2 = walls_df.set_index('Story')
-    st.dataframe(walls_df2)
+    #st.dataframe(walls_df2)
     pier_forces_cleaned=walls_df2.fillna(0)
-    st.dataframe(pier_forces_cleaned)
+    #st.dataframe(pier_forces_cleaned)
     mu1_pier_forces = pier_forces_cleaned.drop(['Step Number_x',
                                                 'Step Label_x',
                                                 'Step Number_y',
@@ -201,7 +198,7 @@ with tab2:
                                                 'T_y',
                                                 'T_x1',
                                                 'T_y1'],axis=1)
-    st.dataframe(mu1_pier_forces)
+    #st.dataframe(mu1_pier_forces)
     mu1_pier_forces.columns=['Pier',
                             'Output Case(Compr)',
                             'P(Compr)',
@@ -230,6 +227,7 @@ with tab2:
                             'H',
                             'd',
                             'b']
+    st.markdown("Maximum forces in Piers")
     st.dataframe(mu1_pier_forces)
 
 
@@ -491,19 +489,19 @@ with tab3:
             #net_tens = 0
             #return net_tens
     #df["Net tension stress"] = df.apply(net_tens_stress, axis=1)
-    st.markdown("Calculated stresses in all walls")
+    st.markdown("**Calculated stresses in all walls**")
     st.dataframe(df)    
     df2 = df
     df2['Net tension stress'] = pd.to_numeric(df2['Net tension stress'], errors='coerce')
     mask = df2['Net tension stress'] != 0
     design_col = df2.loc[mask]
-    st.markdown("Walls to be designed as columns")
+    st.markdown("**Walls to be designed as columns**")
     st.dataframe(design_col)
     #df2
     #df2['Net tension stress'] = pd.to_numeric(df2['Net tension stress'], errors='coerce')
     mask = df2['Net tension stress'] == 0.000000
     design_wall = df2.loc[mask]
-    st.markdown("Walls to be designed using simplified method")
+    st.markdown("**Walls to be designed using simplified method**")
     st.dataframe(design_wall)
 
 with tab4:
@@ -518,7 +516,7 @@ with tab4:
     unique_piers = df.index.get_level_values('Story').unique()
     selected_pier = st.selectbox("Select a Story:", unique_piers)
 
-    col1, col2 = st.columns([2,1])
+    col1, col2 = st.columns([1,2])
     with col2:
         try:
             Pier_forces = df.loc[(selected_story, selected_pier)]
@@ -780,16 +778,45 @@ with tab4:
             st.markdown("No wall is subject to compression over its entire section, design all walls as a column(CL11.2.1).")
     
 with tab5:
-    df2=design_col
-    df2.set_index(['Pier',df2.index], inplace=True)
-    st.markdown("Walls with tensile stresses")
-    st.dataframe(df2)
-    #df2=df.index
-    #st.dataframe(df2)
-    unique_stories = df2.index.get_level_values('Pier').unique()
-    selected_story = st.selectbox("Select a Pier:", unique_stories)
-    unique_piers = df2.index.get_level_values('Story').unique()
-    selected_pier = st.selectbox("Select a Story:", unique_piers)
+    
+    df3=design_col
+    df3.set_index(['Pier',df3.index], inplace=True)
+    st.markdown("**Walls with tensile stresses in part of its section**")
+    st.dataframe(df3)
+    unique_stories = df3.index.get_level_values('Pier').unique()
+    selected_pier = st.selectbox("Select a Pier:", unique_stories)
+    unique_piers = df3.index.get_level_values('Story').unique()
+    selected_story = st.selectbox("Select a Story:", unique_piers)
+    
+    col1, col2 = st.columns([1,2])
+    with col2:
+        #Pier_forces2 = df.loc[(selected_pier, selected_story)]
+        try:
+            Pier_forces_col = df3.loc[(selected_pier, selected_story)]
+            st.write("Selected Pier forces:")
+            st.write(Pier_forces_col)
+        except KeyError:
+            st.write("Selected story and pier combination is not available.")
+
+    with col1:
+        st.write("<u>Wall section input</u>",unsafe_allow_html=True)
+        tw = Pier_forces_col['b']
+        st.write("Width (mm):", tw)
+        b = Pier_forces_col['d']
+        st.write("Length (mm):", b)
+        reo_bar_size = st.selectbox("Reinforcement Bar Size (mm):",options=('10','12','16','20','24','28','32','36','40'))
+        bar_area = (3.14*(float(reo_bar_size))**2)/4
+        st.write("Bar area (mm2):", bar_area)
+        st.number_input (label="Number of bars on the right:",min_value=2,max_value=100,step=1)
+        st.number_input (label="Number of bars on the left:",min_value=2,max_value=100,step=1)
+        st.number_input (label="Right cover:",min_value=5,max_value=100,step=5)
+        st.number_input (label="Left cover:",min_value=5,max_value=100,step=5)
+        st.number_input (label="Top cover:",min_value=5,max_value=100,step=5)
+        st.number_input (label="Bottom cover:",min_value=5,max_value=100,step=5)
+        st.write("<u>Design Data</u>",unsafe_allow_html=True)
+        concrete_fc = st.selectbox("Concrete strength1 f'c (MPa)",options=('20','25','32','40','50','65','80','100'))
+        fsy = 500
+        st.write("Yield strength of reinforcing steel (MPa):", fsy)
 
 
 
