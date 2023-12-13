@@ -7,23 +7,38 @@ import forallpeople as si
 si.environment("structural")
 
 st.write("##### DESIGN AND DETAILING OF REINFORCED CONCRETE WALLS TO AS 3600:2018")
-tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["Summary",
-                                            "Etabs Wall Forces and design parameters", 
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["Overview",
+                                            "Etabs pier output and design parameters", 
                                             "Wall Stresses","Simplified wall design",
                                             "Design as column",
                                             "Need Help or Want to Contribute?"])
 
 with tab1:
-    st.markdown("**INTRODUCTION**")
-    st.markdown("This web-based application is designed to analyse ETABS pier output and design reinforced concrete walls in accordance with AS3600:2018.")
+    st.markdown("<p style='color:red;'>Introduction</p>", unsafe_allow_html=True)
+    st.markdown("This web-based application is designed to analyze ETABS pier output and to design reinforced concrete walls in accordance with AS3600:2018 to resist wind, earthquake and gravity actions.")
                 
     st.markdown("The manual execution of this design procedure can be onerous but leveraging the power of Python programming, this process have been streamlined and the workflow optimized to a reasonable extent thereby enhancing the efficiency of the design.")
-    st.markdown("**DESIGN ASSUMPTIONS AND DISCLAIMERS**")
+    st.markdown("<p style='color:red;'>Design assumptions and disclaimers</p>", unsafe_allow_html=True)
+
+    st.markdown("* This application assumes all walls are doubly reinforced, design of singly reinforced wall sections are outside the scope of this software.")
+    st.markdown("* In cases where the wall aligns with the criteria specified in CL11.2.1(b) of AS 3600:2018 and necessitates a strut-and-tie design, the design engineer must assess whether the loading and support conditions justify a non-flexural analysis, and proceed with the design accordingly, this is outside the scope of this application.")
+    st.markdown("* All walls are assumed to be braced and in determining the effective height of the walls, one-way buckling and a k-factor of 1 have been adopted.")
+    st.markdown("* This application is not a substitute for critical thinking and professional judgement. Users should independently review and validate the results obtained and, when in doubt, seek guidance of experienced engineers. ")
 try:
     with tab2:
 
         uploaded_file = st.file_uploader("ETABS Pier forces:", type=["xlsx"])
         if uploaded_file is not None:
+            st.markdown(
+    """
+    <style>
+    label[for="uploadFile"] {
+        color: red !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
             df_forces = pd.read_excel(uploaded_file)
 
         uploaded_file = st.file_uploader("ETABS Pier properties:", type=["xlsx"])
@@ -535,18 +550,18 @@ try:
 
             with col1:
                 st.write("<u>1. DESIGN AXIAL CAPACITY CHECK (φNu)</u>",unsafe_allow_html=True)
-                st.caption(""" ##### Design Assumptions: 
+                #st.caption(""" ##### Design Assumptions: 
 
-            (a): Vertical and horizontal reinforcement is provided on both wall faces and divided equally between the two wall faces.
+            #(a): Vertical and horizontal reinforcement is provided on both wall faces and divided equally between the two wall faces.
 
-            (b): Have a ratio of effective height to thickness that does not exceed 30 for doubly reinforced walls.""")
+            #(b): Have a ratio of effective height to thickness that does not exceed 30 for doubly reinforced walls.""")
 
-                if Soil_classification == "De - Deep or soft soil":
-                    st.markdown("Simplified design method for compression forces does not apply (cl.11.5.2(c)), design wall as column as per AS3600:2018 Section 10")
-                elif Soil_classification == "Ee - Very soft soil":
-                    st.markdown("Simplified design method for compression forces does not apply (cl.11.5.2(c)), design wall as column as per AS3600:2018 Section 10")
-                else:
-                    st.markdown("Simplified design method for compression forces applies (CL.11.5)")
+                #if Soil_classification == "De - Deep or soft soil":
+                    #st.markdown("Simplified design method for compression forces does not apply (CL.11.5.2(c)), design wall as column as per AS3600:2018 Section 10")
+                #elif Soil_classification == "Ee - Very soft soil":
+                    #st.markdown("Simplified design method for compression forces does not apply (CL.11.5.2(c)), design wall as column as per AS3600:2018 Section 10")
+                #else:
+                    #st.markdown("Simplified design method for compression forces applies (CL.11.5)")
                 concrete_strength = st.selectbox("Concrete strength f'c (MPa)",options=('20','25','32','40','50','65','80','100'))
                 try:
                     with col1:
@@ -753,9 +768,9 @@ try:
                     #3. Detailing
                     with col1:
                         st.write("<u>3. REINFORCEMENT DETAILING</u>",unsafe_allow_html=True)
-                        st.markdown("- Vertical Reinforcement: Minimum vertical reo is required, assuming vertical reinforcement is not used as compression reinforcement!!")
+                        st.markdown("Vertical Reinforcement: Minimum vertical reinforcement is required.")
                     with col1:
-                        st.write("Minimum reo ratio in vertical direction(cl11.7.1):", pw)
+                        st.write("Minimum reo ratio in vertical direction(CL11.7.1):", pw)
                         fsy = 500
                         Vert_bar_dia = st.selectbox("Vertical bar diameter (mm)",options=('10','12','16','20','24','28','32'))
                         Vert_bar_spc = st.selectbox("Vertical bar spcaing (mm)",options=('100','150','200','250','300','350','400'))
@@ -773,13 +788,17 @@ try:
                         if pw3 < 0.0025:
                             st.write('<p style="color: red;">Vertical reo ratio is less than 0.0025, NG!!</p>', unsafe_allow_html=True)
                     with col1:
-                        st.markdown("- Restraint of Vertical Reinforcement (cl11.7.4):")
+                        st.markdown("- Restraint of Vertical Reinforcement (CL11.7.4):")
                     fc = float(concrete_strength)
                     with col1:
                         if fc<51:
-                            st.write('<p style="color: green;">Restraint not required for vertical bars (cl11.7.4(c))</p>', unsafe_allow_html=True)
-                        elif fc>51:
-                            st.markdown('<p style="color: red;">Restraint required for vertical bars (cl11.7.4(d(ii)))</p>', unsafe_allow_html=True)
+                            st.write('<p style="color: green;">Restraint not required for vertical bars (CL11.7.4(c))</p>', unsafe_allow_html=True)
+                    with col1:
+                        if P > 0.5 * Nu:
+                            st.markdown('<p style="color: red;">Restraint required for vertical bars (CL11.7.4(d)(ii))</p>', unsafe_allow_html=True)
+                        else:
+                            st.write('<p style="color: green;">Restraint not required for vertical bars (CL11.7.4(c))</p>', unsafe_allow_html=True)
+
                 except NameError:
                     st.markdown("No wall is subject to compression over its entire section, design all walls as a column(CL11.2.1).")
         
