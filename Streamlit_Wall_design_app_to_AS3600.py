@@ -793,9 +793,13 @@ try:
                     with col1:
                         if fc<51:
                             st.write('<p style="color: green;">Restraint not required for vertical bars (CL11.7.4(c))</p>', unsafe_allow_html=True)
-                    with col1:
-                        if P > 0.5 * Nu:
-                            st.markdown('<p style="color: red;">Restraint required for vertical bars (CL11.7.4(d)(ii))</p>', unsafe_allow_html=True)
+                    #with col1:
+                        elif fc>51 and P > 0.5 * Nu:
+                            st.markdown('<p style="color: red;">Restraint required for vertical bars, detail in accordance with CL14.5.4 (CL11.7.4(d)(ii))</p>', unsafe_allow_html=True)
+                            restrained_distance = max(Sg,(Pier_forces['H']/6))
+                            st.markdown('<p style="color: red;">Provide restraint at each end of the clear height of the segment within the storey, refer to CL14.5.4 for fitment size and spacing.</p>', unsafe_allow_html=True)
+                            st.markdown('<p style="color: red;">Distance from each end of the clear height of segment to be restrained:</p>', unsafe_allow_html=True)
+                            st.write(restrained_distance)
                         else:
                             st.write('<p style="color: green;">Restraint not required for vertical bars (CL11.7.4(c))</p>', unsafe_allow_html=True)
 
