@@ -722,7 +722,7 @@ try:
                     with col1:
                         pw2_latex, pw2_value = hor_reo_ratio(Horz_bar_dia,Horz_bar_spc,tw)
                         pw2 = round(float(pw2_value),5)
-                        st.write("reo ratio(pw)", pw2)
+                        st.write("Horizontal reo ratio(pw)", pw2)
                         if pw2 < 0.0025:
                             st.write('<p style="color: red;">Horizontal reo ratio is less than 0.0025, NG!!</p>', unsafe_allow_html=True)
                         #else:
@@ -775,7 +775,7 @@ try:
                         Vert_bar_dia = st.selectbox("Vertical bar diameter (mm)",options=('10','12','16','20','24','28','32'))
                         Vert_bar_spc = st.selectbox("Vertical bar spcaing (mm)",options=('100','150','200','250','300','350','400'))
                     @handcalc()
-                    def vert_reo_ratio(Vert_bar_dia: float, Vert_bar_spc: float,tw: float):
+                    def vert_reo_ratio(Vert_bar_dia: float, Vert_bar_spc: float,tw: float) -> float:
                         """
                         Returns the reo ratio in the horizontal direction
                         """
@@ -797,7 +797,7 @@ try:
                         elif fc>51 and P > 0.5 * Nu:
                             st.markdown('<p style="color: red;">Restraint required for vertical bars, detail in accordance with CL14.5.4 (CL11.7.4(d)(ii))</p>', unsafe_allow_html=True)
                             restrained_distance = max(Sg,(Pier_forces['H']/6))
-                            st.markdown('<p style="color: red;">Provide restraint at each end of the clear height of the segment within the storey, refer to CL14.5.4 for fitment size and spacing.</p>', unsafe_allow_html=True)
+                            st.markdown('<p style="color: red;">Provide restraint at each end of the clear height of the wall segment within the storey, refer to CL14.5.4 for fitment size and spacing.</p>', unsafe_allow_html=True)
                             st.markdown('<p style="color: red;">Distance from each end of the clear height of segment to be restrained:</p>', unsafe_allow_html=True)
                             st.write(restrained_distance)
                         else:
@@ -840,16 +840,63 @@ try:
             reo_bar_size = st.selectbox("Reinforcement Bar Size (mm):",options=('10','12','16','20','24','28','32','36','40'))
             bar_area = (3.14*(float(reo_bar_size))**2)/4
             st.write("Bar area (mm2):", bar_area)
-            st.number_input (label="Number of bars on the right:",min_value=2,max_value=100,step=1)
-            st.number_input (label="Number of bars on the left:",min_value=2,max_value=100,step=1)
+            right_bars = st.number_input (label="Number of bars on the right:",min_value=2,max_value=100,step=1)
+            left_bars = st.number_input (label="Number of bars on the left:",min_value=2,max_value=100,step=1)
             st.number_input (label="Right cover:",min_value=5,max_value=100,step=5)
             st.number_input (label="Left cover:",min_value=5,max_value=100,step=5)
             st.number_input (label="Top cover:",min_value=5,max_value=100,step=5)
             st.number_input (label="Bottom cover:",min_value=5,max_value=100,step=5)
             st.write("<u>Design Data</u>",unsafe_allow_html=True)
             concrete_fc = st.selectbox("Concrete strength1 f'c (MPa)",options=('20','25','32','40','50','65','80','100'))
-            fsy = 500
+            fsy = 500 * si.MPa
             st.write("Yield strength of reinforcing steel (MPa):", fsy)
+        @handcalc()
+        def alpha2(concrete_fc: float) -> float:
+            """
+            Returns the alpha2 value of the concrete compression block.
+            """
+            alpha = 1.0-0.003*float(concrete_fc)
+            alpha2 = max(0.67, min(alpha, 0.85))
+            return alpha2
+        with col1:
+            alpha2_latex, alpha2_value = alpha2(concrete_fc)
+            alpha2 = round(float(alpha2_value),2)
+            st.write("𝛼2:", alpha2)
+        @handcalc()
+        def gamma(concrete_fc: float) -> float:
+            """
+            Returns the gamma value of the concrete compression block.
+            """
+            gamma = 1.05-0.007*float(concrete_fc)
+            gamma = max(0.67, min(gamma, 0.85))
+            return gamma
+        with col1:
+            gamma_latex, gamma_value = gamma(concrete_fc)
+            gamma = round(float(gamma_value),2)
+            st.write("γ:", gamma)
+        
+        #SQUASH LOAD
+        fc = float(concrete_strength) * si.MPa
+        @handcalc()
+        def squash_load(fc: float,Lw: float, tw: float) -> float:
+            """
+            Returns the squash load of the wall in kN
+            """
+            𝛼2 = 1
+            γ = 1
+            ku = 1
+            Asc = bar_area*(left_bars+right_bars)
+            Nuo = (𝛼2*fc*((γ*ku*tw*Lw)-Asc))+Asc*fsy
+            return Nuo
+        with col1:
+            Nuo_latex, Nuo_value = squash_load(fc,Lw,tw)
+            Nuo = round(float(Nuo_value),2)
+            st.write("Squash Load, Nuo (kN)):", Nuo)
+        with col2:
+            Nuo_latex, Nuo_value = squash_load(fc,Lw,tw)
+            st.markdown("Squash Load:")
+            st.latex(Nuo_latex)
+
 
 
 
