@@ -565,11 +565,11 @@ try:
                 concrete_strength = st.selectbox("Concrete strength f'c (MPa)",options=('20','25','32','40','50','65','80','100'))
                 try:
                     with col1:
-                        tw = Pier_forces['b']
+                        tw = Pier_forces['b'] * si.mm
                         st.write("Width (mm):", tw)
-                        Hwe = Pier_forces['H']
+                        Hwe = Pier_forces['H'] *si.mm
                         st.write("Effective height (mm):", Hwe)
-                        Lw = Pier_forces['d']
+                        Lw = Pier_forces['d'] *si.mm
                         tw = Pier_forces['b'] * si.mm
                         Hwe = Pier_forces['H'] * si.mm
                         @handcalc()
@@ -847,9 +847,24 @@ try:
             st.number_input (label="Top cover:",min_value=5,max_value=100,step=5)
             st.number_input (label="Bottom cover:",min_value=5,max_value=100,step=5)
             st.write("<u>Design Data</u>",unsafe_allow_html=True)
-            concrete_fc = st.selectbox("Concrete strength1 f'c (MPa)",options=('20','25','32','40','50','65','80','100'))
-            fsy = 500 * si.MPa
+            concrete_fc = st.selectbox("Concrete strength, f'c (MPa)",options=('20','25','32','40','50','65','80','100'))
+            fsy = 500
+            st.write("Bar yield strength (MPa):", fsy)
             st.write("Yield strength of reinforcing steel (MPa):", fsy)
+        
+        @handcalc()
+        def alpha1(concrete_fc: float) -> float:
+            """
+            Returns the alpha1 value of the concrete compression block.
+            """
+            alpha = 1.0-0.003*float(concrete_fc)
+            alpha1 = max(0.72, min(alpha, 0.85))
+            return alpha1
+        with col1:
+            alpha1_latex, alpha1_value = alpha1(concrete_fc)
+            alpha1 = round(float(alpha1_value),2)
+            st.write("𝛼1:", alpha1)
+        
         @handcalc()
         def alpha2(concrete_fc: float) -> float:
             """
@@ -862,6 +877,7 @@ try:
             alpha2_latex, alpha2_value = alpha2(concrete_fc)
             alpha2 = round(float(alpha2_value),2)
             st.write("𝛼2:", alpha2)
+        
         @handcalc()
         def gamma(concrete_fc: float) -> float:
             """
@@ -876,17 +892,15 @@ try:
             st.write("γ:", gamma)
         
         #SQUASH LOAD
+        d = Pier_forces['d'] * si.mm
         fc = float(concrete_strength) * si.MPa
         @handcalc()
-        def squash_load(fc: float,Lw: float, tw: float) -> float:
+        def squash_load(fc: float,d: float, tw: float) -> float:
             """
             Returns the squash load of the wall in kN
             """
-            𝛼2 = 1
-            γ = 1
-            ku = 1
             Asc = bar_area*(left_bars+right_bars)
-            Nuo = (𝛼2*fc*((γ*ku*tw*Lw)-Asc))+Asc*fsy
+            Nuo = (alpha1*fc*tw*d)+(Asc*fsy)
             return Nuo
         with col1:
             Nuo_latex, Nuo_value = squash_load(fc,Lw,tw)
