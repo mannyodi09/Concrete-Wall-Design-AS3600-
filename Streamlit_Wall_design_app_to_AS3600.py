@@ -848,8 +848,7 @@ try:
             st.number_input (label="Bottom cover:",min_value=5,max_value=100,step=5)
             st.write("<u>Design Data</u>",unsafe_allow_html=True)
             concrete_fc = st.selectbox("Concrete strength, f'c (MPa)",options=('20','25','32','40','50','65','80','100'))
-            fsy = 500
-            st.write("Bar yield strength (MPa):", fsy)
+            fsy = 500 *si.MPa
             st.write("Yield strength of reinforcing steel (MPa):", fsy)
         
         @handcalc()
@@ -892,15 +891,16 @@ try:
             st.write("γ:", gamma)
         
         #SQUASH LOAD
-        d = Pier_forces['d'] * si.mm
-        fc = float(concrete_strength) * si.MPa
+        tw = Pier_forces_col['b'] * si.mm
+        Lw = Pier_forces_col['d'] * si.mm
+        fc = float(concrete_fc) * si.MPa
         @handcalc()
-        def squash_load(fc: float,d: float, tw: float) -> float:
+        def squash_load(fc: float,Lw: float, tw: float) -> float:
             """
             Returns the squash load of the wall in kN
             """
-            Asc = bar_area*(left_bars+right_bars)
-            Nuo = (alpha1*fc*tw*d)+(Asc*fsy)
+            Asc = bar_area*(left_bars+right_bars)*si.mm**2
+            Nuo = ((alpha1 * fc * tw * Lw) + (Asc * fsy)).prefix('k')
             return Nuo
         with col1:
             Nuo_latex, Nuo_value = squash_load(fc,Lw,tw)
@@ -908,7 +908,7 @@ try:
             st.write("Squash Load, Nuo (kN)):", Nuo)
         with col2:
             Nuo_latex, Nuo_value = squash_load(fc,Lw,tw)
-            st.markdown("Squash Load:")
+            st.markdown("Squash Load, Nuo:")
             st.latex(Nuo_latex)
 
 
