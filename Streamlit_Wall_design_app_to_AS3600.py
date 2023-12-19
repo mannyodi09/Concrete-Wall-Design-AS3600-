@@ -910,8 +910,8 @@ try:
         with col1:
             Nuo_latex, Nuo_value = squash_load(fc,Lw,tw)
             Nuo = round(float(Nuo_value),2)
-            st.write("Squash Load, Nuo (kN)):", Nuo)
-            st.write("Bending Moment, M* (kNm)):", 0)
+            st.write("Squash Load, Nuo (kN):", Nuo)
+            st.write("Bending Moment, M* (kNm):", 0)
         with col2:
             Nuo_latex, Nuo_value = squash_load(fc,Lw,tw)
             st.markdown("Squash Load, Nuo:")
@@ -930,30 +930,46 @@ try:
             st.write("<u>2. Decompression point</u>",unsafe_allow_html=True)
         column_bars = right_bars
         bar_layers = [f'layer {i}' for i in range(1, column_bars + 1 )]
-        st.write(bar_layers)
+        #st.write(bar_layers)
 
         Asc_per_layer = bar_area*2*si.mm**2
         reo_dia = float(reo_bar_size) * si.mm
-        st.write(Asc_per_layer)
+        conc_cover = cover_1 *si.mm
+
         @handcalc()
-        def effective_depth(Lw: float, cover_1: float, reo_dia:float) -> float:
+        def effective_depth(Lw: float, conc_cover: float, reo_dia: float) -> float:
             """
-            Returns the effective depth of the wall section in mm
+            Returns the effective depth of the section in mm
             """
-            deff = Lw - cover_1 * si.mm -10 * si.mm - (float(reo_dia)/2) * si.mm
+            deff = Lw - conc_cover - (10*si.mm) - reo_dia/2
             return deff
         with col1:
-            deff_latex, deff_value = effective_depth(Lw, cover_1, reo_bar_size)
+            deff_latex, deff_value = effective_depth(Lw,conc_cover,reo_dia)
             deff = round(float(deff_value),2)
-            st.write("Effective depth, d (mm):", deff)
-        with col2:
-            deff_latex, deff_value = effective_depth(Lw,cover_1, reo_bar_size)
-            st.markdown("Effective depth, d:")
-            st.latex(deff_latex)
+            st.write("Effective depth, d (m):", deff)
+        #with col2:
+            #deff_latex, deff_value = effective_depth(Lw,conc_cover,reo_dia)
+            #st.markdown("Effective depth, d:")
+            #st.latex(deff_latex)
+
+        #Determine the strain each layer of steel.
+        spacing_bars = (Lw - (conc_cover * 2))/(right_bars - 1)
+        #st.write(spacing_bars)
+
+        @handcalc()
+        def strain_per_layer(deff: float, cover_1: float) -> float:
+            """
+            Returns the strain in each layer of reinforcement
+            """
+            strains = []
+            for i in range(bar_layers):
+                deff_layer = deff - i * spacing_bars
+                Es = ((deff_layer - cover_1)/deff_layer) * 0.003
+                strains.append(Es)
+            return strains
+
 
         
-
-
 
 
 
