@@ -842,13 +842,12 @@ try:
             st.write("Bar area (mm2):", bar_area)
             right_bars = st.number_input (label="Number of bars on the right:",min_value=2,max_value=100,step=1)
             left_bars = st.number_input (label="Number of bars on the left:",min_value=2,max_value=100,step=1)
-            st.number_input (label="Right cover:",min_value=5,max_value=100,step=5)
-            st.number_input (label="Left cover:",min_value=5,max_value=100,step=5)
-            st.number_input (label="Top cover:",min_value=5,max_value=100,step=5)
-            st.number_input (label="Bottom cover:",min_value=5,max_value=100,step=5)
-            st.write("<u>Design Data</u>",unsafe_allow_html=True)
+            st.number_input (label="Right cover(mm):",min_value=5,max_value=100,step=5)
+            st.number_input (label="Left cover(mm):",min_value=5,max_value=100,step=5)
+            cover_1 = st.number_input (label="Top cover(mm):",min_value=5,max_value=100,step=5)
+            cover_2 = st.number_input (label="Bottom cover(mm):",min_value=5,max_value=100,step=5)
             concrete_fc = st.selectbox("Concrete strength, f'c (MPa)",options=('20','25','32','40','50','65','80','100'))
-            fsy = 500 *si.MPa
+            fsy = 500
             st.write("Yield strength of reinforcing steel (MPa):", fsy)
         
         @handcalc()
@@ -891,6 +890,12 @@ try:
             st.write("γ:", gamma)
         
         #SQUASH LOAD
+    
+        #1. At squash load point all steel are yeilded.
+        #2. Concrete have reached the ultimate compressive stress (𝛼1f'c)
+        
+            st.write("<u>Four points to determine simplified interaction diagram</u>",unsafe_allow_html=True)
+            st.write("<u>1. Squash Load</u>",unsafe_allow_html=True)
         tw = Pier_forces_col['b'] * si.mm
         Lw = Pier_forces_col['d'] * si.mm
         fc = float(concrete_fc) * si.MPa
@@ -900,16 +905,54 @@ try:
             Returns the squash load of the wall in kN
             """
             Asc = bar_area*(left_bars+right_bars)*si.mm**2
-            Nuo = ((alpha1 * fc * tw * Lw) + (Asc * fsy)).prefix('k')
+            Nuo = 0.65*((alpha1 * fc * tw * Lw) + (Asc * fsy *si.MPa)).prefix('k')
             return Nuo
         with col1:
             Nuo_latex, Nuo_value = squash_load(fc,Lw,tw)
             Nuo = round(float(Nuo_value),2)
             st.write("Squash Load, Nuo (kN)):", Nuo)
+            st.write("Bending Moment, M* (kNm)):", 0)
         with col2:
             Nuo_latex, Nuo_value = squash_load(fc,Lw,tw)
             st.markdown("Squash Load, Nuo:")
             st.latex(Nuo_latex)
+        
+        
+
+        #Decompression point
+        
+        #1. At decompression point extreme tensile steel has no strain
+        #2. Concrete compressive fibre have reached ultimate striain at 0.003
+        #The stress in concrete cab be reqpresented using a rectangular stress block
+
+        #Determine compression force in each layer of steel.
+        with col1:
+            st.write("<u>2. Decompression point</u>",unsafe_allow_html=True)
+        column_bars = right_bars
+        bar_layers = [f'layer {i}' for i in range(1, column_bars + 1 )]
+        st.write(bar_layers)
+
+        Asc_per_layer = bar_area*2*si.mm**2
+        reo_dia = float(reo_bar_size) * si.mm
+        st.write(Asc_per_layer)
+        @handcalc()
+        def effective_depth(Lw: float, cover_1: float, reo_dia:float) -> float:
+            """
+            Returns the effective depth of the wall section in mm
+            """
+            deff = Lw - cover_1 * si.mm -10 * si.mm - (float(reo_dia)/2) * si.mm
+            return deff
+        with col1:
+            deff_latex, deff_value = effective_depth(Lw, cover_1, reo_bar_size)
+            deff = round(float(deff_value),2)
+            st.write("Effective depth, d (mm):", deff)
+        with col2:
+            deff_latex, deff_value = effective_depth(Lw,cover_1, reo_bar_size)
+            st.markdown("Effective depth, d:")
+            st.latex(deff_latex)
+
+        
+
 
 
 
