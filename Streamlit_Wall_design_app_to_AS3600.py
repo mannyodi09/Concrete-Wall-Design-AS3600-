@@ -928,9 +928,9 @@ try:
         #Determine compression force in each layer of steel.
         with col1:
             st.write("<u>2. Decompression point</u>",unsafe_allow_html=True)
-        column_bars = right_bars
+        column_bars = int(right_bars)
         bar_layers = [f'layer {i}' for i in range(1, column_bars + 1 )]
-        #st.write(bar_layers)
+        st.write(bar_layers)
 
         Asc_per_layer = bar_area*2*si.mm**2
         reo_dia = float(reo_bar_size) * si.mm
@@ -955,18 +955,22 @@ try:
         #Determine the strain each layer of steel.
         spacing_bars = (Lw - (conc_cover * 2))/(right_bars - 1)
         #st.write(spacing_bars)
-
+        
         @handcalc()
-        def strain_per_layer(deff: float, cover_1: float) -> float:
+        def strain_per_layer(deff: float, cover_1: float, bar_layers: float, spacing_bars: float) -> list:
             """
             Returns the strain in each layer of reinforcement
             """
             strains = []
             for i in range(bar_layers):
                 deff_layer = deff - i * spacing_bars
-                Es = ((deff_layer - cover_1)/deff_layer) * 0.003
+                Es = ((deff_layer - cover_1) / deff_layer) * 0.003
                 strains.append(Es)
             return strains
+        
+        strain_result = strain_per_layer(deff, cover_1, bar_layers, spacing_bars)
+        st.write(strain_result)
+
 
 
         
