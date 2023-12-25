@@ -819,7 +819,7 @@ try:
         unique_stories = df3.index.get_level_values('Pier').unique()
         selected_pier = st.selectbox("Select a Pier:", unique_stories)
         unique_piers = df3.index.get_level_values('Story').unique()
-        selected_story = st.selectbox("Select a Story:", unique_piers)
+        selected_story = st.selectbox("Select Story:", unique_piers)
         
         col1, col2 = st.columns([1,2])
         with col2:
@@ -930,6 +930,7 @@ try:
             st.write("<u>2. Decompression point</u>",unsafe_allow_html=True)
         column_bars = int(right_bars)
         bar_layers = [f'layer {i}' for i in range(1, column_bars + 1 )]
+        #bar_layers = [{i} for i in range(1, column_bars + 1 )]
         st.write(bar_layers)
 
         Asc_per_layer = bar_area*2*si.mm**2
@@ -957,17 +958,17 @@ try:
         #st.write(spacing_bars)
         
         @handcalc()
-        def strain_per_layer(deff: float, cover_1: float, bar_layers: float, spacing_bars: float) -> list:
+        def strain_per_layer(deff: float, cover_1: float, bar_layers: list, spacing_bars: float) -> list:
             """
             Returns the strain in each layer of reinforcement
             """
             strains = []
-            for i in range(bar_layers):
+            for i in range(len(bar_layers)):
                 deff_layer = deff - i * spacing_bars
                 Es = ((deff_layer - cover_1) / deff_layer) * 0.003
                 strains.append(Es)
             return strains
-        
+
         strain_result = strain_per_layer(deff, cover_1, bar_layers, spacing_bars)
         st.write(strain_result)
 
