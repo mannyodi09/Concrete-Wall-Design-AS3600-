@@ -957,19 +957,23 @@ try:
         spacing_bars = (Lw - (conc_cover * 2))/(right_bars - 1)
         #st.write(spacing_bars)
         
-        @handcalc()
-        def strain_per_layer(deff: float, cover_1: float, bar_layers: list, spacing_bars: float) -> list:
+        #@handcalc()
+        def strain_per_layer(deff: float, conc_cover: float, bar_layers: list, spacing_bars: float) -> list:
             """
             Returns the strain in each layer of reinforcement
             """
             strains = []
             for i in range(len(bar_layers)):
                 deff_layer = deff - i * spacing_bars
-                Es = ((deff_layer - cover_1) / deff_layer) * 0.003
+                Es = ((deff_layer - conc_cover) / deff_layer) * 0.003
+                if Es < 0:
+                    Es = 0
+                else:
+                    Es = Es
                 strains.append(Es)
             return strains
 
-        strain_result = strain_per_layer(deff, cover_1, bar_layers, spacing_bars)
+        strain_result = strain_per_layer(deff, conc_cover, bar_layers, spacing_bars)
         st.write(strain_result)
 
 
