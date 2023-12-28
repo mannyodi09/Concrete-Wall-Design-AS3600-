@@ -842,6 +842,8 @@ try:
             st.write("Bar area (mm2):", bar_area)
             right_bars = st.number_input (label="Number of bars on the right:",min_value=2,max_value=100,step=1)
             left_bars = st.number_input (label="Number of bars on the left:",min_value=2,max_value=100,step=1)
+            if right_bars != left_bars:
+                st.write('<p style="color: red;">Number of bars on the right of the wall MUST equal number of bars on the left of the wall.</p>', unsafe_allow_html=True)
             st.number_input (label="Right cover(mm):",min_value=5,max_value=100,step=5)
             st.number_input (label="Left cover(mm):",min_value=5,max_value=100,step=5)
             cover_1 = st.number_input (label="Top cover(mm):",min_value=5,max_value=100,step=5)
@@ -930,7 +932,6 @@ try:
             st.write("<u>2. Decompression point</u>",unsafe_allow_html=True)
         column_bars = int(right_bars)
         bar_layers = [f'layer {i}' for i in range(1, column_bars + 1 )]
-        #bar_layers = [{i} for i in range(1, column_bars + 1 )]
         st.write(bar_layers)
 
         Asc_per_layer = bar_area*2*si.mm**2
@@ -957,24 +958,88 @@ try:
         spacing_bars = (Lw - (conc_cover * 2))/(right_bars - 1)
         #st.write(spacing_bars)
         
-        #@handcalc()
         def strain_per_layer(deff: float, conc_cover: float, bar_layers: list, spacing_bars: float) -> list:
             """
             Returns the strain in each layer of reinforcement
             """
             strains = []
             for i in range(len(bar_layers)):
-                deff_layer = deff - i * spacing_bars
-                Es = ((deff_layer - conc_cover) / deff_layer) * 0.003
-                if Es < 0:
-                    Es = 0
+                deff_layer = deff - conc_cover - (i * spacing_bars)
+                es = (float(deff_layer  / deff) * 0.003)/1000
+                if es < 0:
+                    es = 0
                 else:
-                    Es = Es
-                strains.append(Es)
+                    es = es
+                strains.append(es)
             return strains
 
-        strain_result = strain_per_layer(deff, conc_cover, bar_layers, spacing_bars)
-        st.write(strain_result)
+        #strain_result = strain_per_layer(deff, conc_cover, bar_layers, spacing_bars)
+        #st.write(strain_result)
+
+        Es = 200000 * si.MPa
+        def steel_compr_force(bar_area: float, strains: list) -> list:
+            """
+            Returns the compression force in each layer of reinforcement in kN
+            """
+            force_layer = []
+            for es in strains:
+                force = (bar_area*si.mm**2)*2 * es * Es
+                force_layer.append(force)
+            return force_layer
+        #force_layer = steel_compr_force(bar_area,strains=strain_per_layer(deff, conc_cover, bar_layers, spacing_bars))
+        #st.write(force_layer)
+
+        @handcalc()
+        def Concrete_Compr_force_resultant(gamma: float, deff: float, alpha2: float, fc: float, tw: float) -> float:
+            """
+            Returns compression force resultant in the concrete in kN
+            """
+            ku = 1
+            Cc =  (gamma * ku * deff * alpha2 * fc * tw).prefix('k')
+            return Cc
+        with col1:
+            Cc_latex, Cc_value = Concrete_Compr_force_resultant(gamma,deff,alpha2,fc,tw)
+            Cc = round(float(Cc_value),2)
+            st.write("Concrete resultant compression force, Cc (kN):", Cc)
+        #with col2:
+            #Cc_latex, Cc_value = Concrete_Compr_force_resultant(gamma,deff,alpha2,fc,tw)
+            #st.markdown("Concrete resultant compression force, Cc:")
+            #st.latex(Cc_latex)
+
+        @handcalc()
+        def steel_Compr_force_resultant(force_layer: list) -> float:
+            """
+            Returns compression force resultant in the steel layers in kN
+            """
+            Ns = (sum(force_layer)).prefix('k')
+            return Ns
+        with col1:
+            force_layer = steel_compr_force(bar_area,strains=strain_per_layer(deff, conc_cover, bar_layers, spacing_bars))
+            Ns_latex, Ns_value = steel_Compr_force_resultant(force_layer)
+            Ns = round(float(Ns_value),2)
+            st.write("Steel resultant compression force, Ns (kN):", Ns)
+
+        @handcalc()
+        def total_compr_force(force_layer: list, Cc: float) -> float:
+            """
+            Returns the total compression force in the section in kN
+            """
+            N = (sum(force_layer) + Cc*si.kN).prefix('k')
+            return N
+        with col1:
+            force_layer = steel_compr_force(bar_area,strains=strain_per_layer(deff, conc_cover, bar_layers, spacing_bars))
+            N_latex, N_value = total_compr_force(force_layer ,Cc)
+            N = round(float(N_value),2)
+            st.write("Total compression force in the section (kN):", N)
+
+        #Determine lever arm of each bar to the plastic centrioid
+            
+        def pc(Lw: float, conc_cover: float) -> float:
+            """
+            Returns the plastic centroid of the concrete section in mm
+            """
+            pc = (Lw-(2*conc_cover))/2
+            return pc
 
 
 
