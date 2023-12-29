@@ -896,8 +896,8 @@ try:
         #1. At squash load point all steel are yeilded.
         #2. Concrete have reached the ultimate compressive stress (𝛼1f'c)
         
-            st.write("<u>Four points to determine simplified interaction diagram</u>",unsafe_allow_html=True)
-            st.write("<u>1. Squash Load</u>",unsafe_allow_html=True)
+            st.write('<p style="color: green;"><b>Four points to determine the force-mmoment interaction diagram</b></p>',unsafe_allow_html=True)
+            st.write('<p style="color: green;"><b>1. Squash load</b></p>',unsafe_allow_html=True)
         tw = Pier_forces_col['b'] * si.mm
         Lw = Pier_forces_col['d'] * si.mm
         fc = float(concrete_fc) * si.MPa
@@ -929,10 +929,10 @@ try:
 
         #Determine compression force in each layer of steel.
         with col1:
-            st.write("<u>2. Decompression point</u>",unsafe_allow_html=True)
+            st.write('<p style="color: green;"><b>2. Decompression point</b></p>',unsafe_allow_html=True)
         column_bars = int(right_bars)
         bar_layers = [f'layer {i}' for i in range(1, column_bars + 1 )]
-        st.write(bar_layers)
+        #st.write(bar_layers)
 
         Asc_per_layer = bar_area*2*si.mm**2
         reo_dia = float(reo_bar_size) * si.mm
@@ -956,7 +956,7 @@ try:
 
         #Determine the strain each layer of steel.
         spacing_bars = (Lw - (conc_cover * 2))/(right_bars - 1)
-        #st.write(spacing_bars)
+        st.write(spacing_bars)
         
         def strain_per_layer(deff: float, conc_cover: float, bar_layers: list, spacing_bars: float) -> list:
             """
@@ -1024,7 +1024,7 @@ try:
             """
             Returns the total compression force in the section in kN
             """
-            N = (sum(force_layer) + Cc*si.kN).prefix('k')
+            N = 0.65*(sum(force_layer) + Cc*si.kN).prefix('k')
             return N
         with col1:
             force_layer = steel_compr_force(bar_area,strains=strain_per_layer(deff, conc_cover, bar_layers, spacing_bars))
@@ -1040,9 +1040,111 @@ try:
             """
             pc = (Lw-(2*conc_cover))/2
             return pc
+        pc = pc(Lw, conc_cover)
+        #st.write(pc)
+
+        def LeverArm(pc: float, spacing_bars: float, bar_layer: list) -> float:
+            """
+            Returns the distance of the bar layer to the plastic centroid of the section in mm
+            """
+            leverarm = []
+            for i in range(len(bar_layers)):
+                LA = abs(pc - (i * spacing_bars))
+                leverarm.append(LA)
+            return leverarm
+        
+        leverarm = LeverArm(pc, spacing_bars, bar_layers)
+        #st.write(leverarm)
+
+        def cal_moment(force_layer: list, leverarm: list) -> list:
+            moment = []
+            for i in range(len(force_layer)):
+                moment.append(force_layer[i]*leverarm[i])
+            return moment
+        moment = cal_moment(force_layer, leverarm)
+        #st.write(moment)
+
+        @handcalc()
+        def sum_moment(moment: list) -> float:
+            """
+            Returns the total bending moment due to all the forces about the plastic centroid in the section in kNm
+            """
+            M = sum(moment)*0.65
+            return M
+        with col1:
+            moment = cal_moment(force_layer, leverarm)
+            M_latex, M_value = sum_moment(moment)
+            M = round(float(M_value),2)
+            st.write("Total bending moment in the section (kNm):", M)
 
 
+        #Balanced point
+        
+        #1. At balanced point, extreme tensile steel just yielded (strain = 0.0025)
+        #2. Concrete compressive fibre have reached ultimate striain at 0.003, ku = 0.545, kud = 0.545d
+        #The stress in concrete cab be reqpresented using a rectangular stress block
 
+        with col1:
+            st.write('<p style="color: green;"><b>3. Balanced point</b></p>',unsafe_allow_html=True)
+        @handcalc()
+        def Concrete_Compr_force_resultant2(gamma: float, deff: float, alpha2: float, fc: float, tw: float) -> float:
+            """
+            Returns compression force resultant in the concrete at balanced point in kN
+            """
+            ku = 0.545
+            Cc2 =  (gamma * ku * deff * alpha2 * fc * tw).prefix('k')
+            return Cc2
+        with col1:
+            Cc2_latex, Cc2_value = Concrete_Compr_force_resultant2(gamma,deff,alpha2,fc,tw)
+            Cc2 = round(float(Cc2_value),2)
+            st.write("Concrete resultant compression force, Cc (kN):", Cc2)
+
+
+        def strain_per_layer2(deff: float, conc_cover: float, bar_layers: list, spacing_bars: float) -> list:
+            """
+            Returns the strain in each layer of reinforcement
+            """
+            strains2 = []
+            for i in range(len(bar_layers)):
+                deff_layer = deff*0.545 - conc_cover - (i * spacing_bars)
+                es = (float(deff_layer  / (deff*0.545)) * 0.003)/1000
+                #if es < 0:
+                    #es = 0
+                #else:
+                    #es = es
+                strains2.append(es)
+            return strains2
+        strain_result = strain_per_layer2(deff, conc_cover, bar_layers, spacing_bars)
+        st.write(strain_result)
+
+        def steel_force(bar_area: float, strains2: list) -> list:
+            """
+            Returns the compression force in each layer of reinforcement in kN
+            """
+            strains2 = strain_per_layer2(deff, conc_cover, bar_layers, spacing_bars)
+            force_layer2 = []
+            for es in strains2:
+                force2 = (bar_area*si.mm**2)*2 * es * Es
+                force_layer2.append(force2)
+            return force_layer2
+        force_layer2 = steel_force(bar_area,strains2=strain_per_layer2(deff, conc_cover, bar_layers, spacing_bars))
+        st.write(force_layer2)
+
+        @handcalc()
+        def total_force(force_layer2: list, Cc2: float) -> float:
+            """
+            Returns the total compression force in the section in kN
+            """
+            N2 = 0.65*(sum(force_layer2) + Cc2*si.kN).prefix('k')
+            return N2
+        with col1:
+            force_layer2 = steel_force(bar_area,strains2=strain_per_layer2(deff, conc_cover, bar_layers, spacing_bars))
+            N2_latex, N2_value = total_force(force_layer ,Cc2)
+            N2 = round(float(N2_value),2)
+            st.write("Net axial force in the section (kN):", N2)
+
+        
+        
         
 
 
@@ -1055,8 +1157,8 @@ try:
 
 
         st.markdown("**Email**: eeigbedion@edgece.com")
-except NameError:
-            st.markdown("Upload an Etabs File to continue")
+#except NameError:
+            #st.markdown("Upload an Etabs File to continue")
 except KeyError:
             st.markdown("Etabs files uploaded incorrectly")
 
