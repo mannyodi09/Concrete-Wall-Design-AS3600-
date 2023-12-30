@@ -896,7 +896,7 @@ try:
         #1. At squash load point all steel are yeilded.
         #2. Concrete have reached the ultimate compressive stress (𝛼1f'c)
         
-            st.write('<p style="color: green;"><b>Four points to determine the force-mmoment interaction diagram</b></p>',unsafe_allow_html=True)
+            st.write('<p style="color: green;"><b>Four points to determine the force-moment interaction diagram</b></p>',unsafe_allow_html=True)
             st.write('<p style="color: green;"><b>1. Squash load</b></p>',unsafe_allow_html=True)
         tw = Pier_forces_col['b'] * si.mm
         Lw = Pier_forces_col['d'] * si.mm
@@ -948,7 +948,7 @@ try:
         with col1:
             deff_latex, deff_value = effective_depth(Lw,conc_cover,reo_dia)
             deff = round(float(deff_value),2)
-            #st.write("Effective depth, d (m):", deff)
+            st.write("Effective depth, d (m):", deff)
         #with col2:
             #deff_latex, deff_value = effective_depth(Lw,conc_cover,reo_dia)
             #st.markdown("Effective depth, d:")
@@ -973,7 +973,7 @@ try:
                 strains.append(es)
             return strains
 
-        #strain_result = strain_per_layer(deff, conc_cover, bar_layers, spacing_bars)
+        strain_result = strain_per_layer(deff, conc_cover, bar_layers, spacing_bars)
         #st.write(strain_result)
 
         Es = 200000 * si.MPa
@@ -1043,7 +1043,7 @@ try:
         pc = pc(Lw, conc_cover)
         #st.write(pc)
 
-        def LeverArm(pc: float, spacing_bars: float, bar_layer: list) -> float:
+        def LeverArm(pc: float, spacing_bars: float, bar_layers: list) -> float:
             """
             Returns the distance of the bar layer to the plastic centroid of the section in mm
             """
@@ -1065,15 +1065,15 @@ try:
         #st.write(moment)
 
         @handcalc()
-        def sum_moment(moment: list) -> float:
+        def sum_moment(moment: list, pc: float, Cc: float, deff: float) -> float:
             """
             Returns the total bending moment due to all the forces about the plastic centroid in the section in kNm
             """
-            M = sum(moment)*0.65
+            M = ((sum(moment) + ((pc-(deff/3))*Cc*si.kN))*0.65).prefix('k')
             return M
         with col1:
             moment = cal_moment(force_layer, leverarm)
-            M_latex, M_value = sum_moment(moment)
+            M_latex, M_value = sum_moment(moment, pc, Cc, deff)
             M = round(float(M_value),2)
             st.write("Total bending moment in the section (kNm):", M)
 
@@ -1160,16 +1160,16 @@ try:
         #st.write(moment2)
 
         @handcalc()
-        def sum_moment2(moment2: list) -> float:
+        def sum_moment2(moment2: list, pc: float, Cc2: float, deff: float) -> float:
             """
             Returns the total bending moment due to all the forces about the plastic centroid in the section in kNm
             """
             abs_values = [abs(x) for x in moment2]
-            M2 = (sum((abs_values))).prefix('k')*0.65
+            M2 = (((sum(abs_values))*0.65) + (((pc-((deff*0.545)/3))*(Cc2*si.kN))*0.65)).prefix('k')
             return M2
         with col1:
             moment2 = cal_moment2(force_layer2, leverarm)
-            M2_latex, M2_value = sum_moment2(moment2)
+            M2_latex, M2_value = sum_moment2(moment2, pc, Cc2, deff)
             M2 = round(float(M2_value),2)
             st.write("Total bending moment in the section (kNm):", M2)
 
