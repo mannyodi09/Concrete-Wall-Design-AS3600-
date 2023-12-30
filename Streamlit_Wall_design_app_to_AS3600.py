@@ -948,7 +948,7 @@ try:
         with col1:
             deff_latex, deff_value = effective_depth(Lw,conc_cover,reo_dia)
             deff = round(float(deff_value),2)
-            st.write("Effective depth, d (m):", deff)
+            #st.write("Effective depth, d (m):", deff)
         #with col2:
             #deff_latex, deff_value = effective_depth(Lw,conc_cover,reo_dia)
             #st.markdown("Effective depth, d:")
@@ -956,7 +956,7 @@ try:
 
         #Determine the strain each layer of steel.
         spacing_bars = (Lw - (conc_cover * 2))/(right_bars - 1)
-        st.write(spacing_bars)
+        #st.write(spacing_bars)
         
         def strain_per_layer(deff: float, conc_cover: float, bar_layers: list, spacing_bars: float) -> list:
             """
@@ -986,7 +986,7 @@ try:
                 force = (bar_area*si.mm**2)*2 * es * Es
                 force_layer.append(force)
             return force_layer
-        #force_layer = steel_compr_force(bar_area,strains=strain_per_layer(deff, conc_cover, bar_layers, spacing_bars))
+        force_layer = steel_compr_force(bar_area,strains=strain_per_layer(deff, conc_cover, bar_layers, spacing_bars))
         #st.write(force_layer)
 
         @handcalc()
@@ -1115,7 +1115,7 @@ try:
                 strains2.append(es)
             return strains2
         strain_result = strain_per_layer2(deff, conc_cover, bar_layers, spacing_bars)
-        st.write(strain_result)
+        #st.write(strain_result)
 
         def steel_force(bar_area: float, strains2: list) -> list:
             """
@@ -1128,20 +1128,60 @@ try:
                 force_layer2.append(force2)
             return force_layer2
         force_layer2 = steel_force(bar_area,strains2=strain_per_layer2(deff, conc_cover, bar_layers, spacing_bars))
-        st.write(force_layer2)
+        #st.write(force_layer2)
 
         @handcalc()
         def total_force(force_layer2: list, Cc2: float) -> float:
             """
             Returns the total compression force in the section in kN
             """
-            N2 = 0.65*(sum(force_layer2) + Cc2*si.kN).prefix('k')
+            force_layer2 = steel_force(bar_area,strains2=strain_per_layer2(deff, conc_cover, bar_layers, spacing_bars))
+            tensile_forces = sum([x for x in force_layer2 if x < 0])
+            compr_forces = sum([x for x in force_layer2 if x > 0])
+            if tensile_forces > compr_forces:
+                net_axial = abs(tensile_forces) - compr_forces
+            if tensile_forces < compr_forces:
+                net_axial = compr_forces - abs(tensile_forces)
+            N2 = 0.65*(net_axial + Cc2*si.kN).prefix('k')
             return N2
         with col1:
             force_layer2 = steel_force(bar_area,strains2=strain_per_layer2(deff, conc_cover, bar_layers, spacing_bars))
             N2_latex, N2_value = total_force(force_layer ,Cc2)
             N2 = round(float(N2_value),2)
             st.write("Net axial force in the section (kN):", N2)
+
+
+        def cal_moment2(force_layer2: list, leverarm: list) -> list:
+            moment2 = []
+            for i in range(len(force_layer2)):
+                moment2.append(force_layer2[i]*leverarm[i])
+            return moment2
+        #moment2 = cal_moment2(force_layer2, leverarm)
+        #st.write(moment2)
+
+        @handcalc()
+        def sum_moment2(moment2: list) -> float:
+            """
+            Returns the total bending moment due to all the forces about the plastic centroid in the section in kNm
+            """
+            abs_values = [abs(x) for x in moment2]
+            M2 = (sum((abs_values))).prefix('k')*0.65
+            return M2
+        with col1:
+            moment2 = cal_moment2(force_layer2, leverarm)
+            M2_latex, M2_value = sum_moment2(moment2)
+            M2 = round(float(M2_value),2)
+            st.write("Total bending moment in the section (kNm):", M2)
+
+
+        #Pure bending
+        
+        #1. At pure bedning point, extreme tensile steel already yielded (strain > 0.0025)
+        #2. Concrete compressive fibre have reached ultimate striain at 0.003, ku is unknown
+        #The stress in concrete cab be reqpresented using a rectangular stress block
+
+        with col1:
+            st.write('<p style="color: green;"><b>4. Pure bending</b></p>',unsafe_allow_html=True)
 
         
         
