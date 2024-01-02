@@ -957,7 +957,7 @@ try:
 
         #Determine the strain each layer of steel.
         spacing_bars = (Lw - (conc_cover * 2))/(right_bars - 1)
-        #st.write(spacing_bars)
+        st.write(spacing_bars)
         
         def strain_per_layer(deff: float, conc_cover: float, bar_layers: list, spacing_bars: float) -> list:
             """
@@ -1184,52 +1184,66 @@ try:
         with col1:
             st.write('<p style="color: green;"><b>4. Pure bending</b></p>',unsafe_allow_html=True)
 
-        def strain_per_layer3(deff: float, conc_cover: float, bar_layers: list, spacing_bars: float) -> list:
+
+        def det_ku3(deff: float, conc_cover: float, bar_layers: list, spacing_bars: float) ->float:
             """
-            Returns the strain in each layer of reinforcement
+            Returns the value of ku3 where the sum of forces in the concrete section equals 0
             """
-            target_strain = -0.0025
-            strains3 = []
-            for ku3 in np.linspace(0.05, 0.9, num=15):
+            ku3_values = np.round(np.linspace(0.01, 0.2, num=1000),3)
+            index = 0
+
+            while index < len(ku3_values):
+                ku3 = ku3_values[index]
+                strains3 = []
+                force_layer3 = []
+                condition_met = False
+
                 for i in range(len(bar_layers)):
-                    deff_layer = deff*ku3 - conc_cover - (i * spacing_bars)
-                    es = float((deff_layer  / (deff*ku3)) * 0.003)/1000
+                    deff_layer = deff * ku3 - conc_cover - (i * spacing_bars)
+                    es = (float(deff_layer  / (deff*ku3)) * 0.003) /1000
                     strains3.append(es)
-                if abs(strains3[-1]) == target_strain: #and strains3[0]>=0.0029:
+                    force = (((bar_area * si.mm**2)) * 2 *es *Es).prefix('k')
+                    force_layer3.append(force)
+                    Cc3 = (gamma * ku3 *deff * si.m *alpha2 * fc *tw).prefix('k')
+                    if -50 <= float(sum(force_layer3) + Cc3) <= 50:
+                        condition_met = True
+                        break
+                st.write(f'ku3: {ku3}, condition_met: {condition_met}')
+                if condition_met:
                     break
-                return strains3,ku3
-                #return [], None
-        strain_result = strain_per_layer3(deff, conc_cover, bar_layers, spacing_bars)
-        st.write(strain_result)
+                index += 1
+            return sum(force_layer3) + Cc3
+        
+        ku3 = det_ku3(deff, conc_cover, bar_layers, spacing_bars)
+        st.write(ku3)
+        
 
-        strains3 , ku3 = strain_per_layer3(deff, conc_cover, bar_layers, spacing_bars)
-        ku3 = ku3
-        strain3 = strains3
-
-        @handcalc()
-        def Concrete_Compr_force_resultant3(gamma: float, deff: float, alpha2: float, fc: float, tw: float) -> float:
-            """
-            Returns compression force resultant in the concrete at pure bending point in kN
-            """
-            Cc3 =  (gamma * ku3 * deff * alpha2 * fc * tw).prefix('k')
-            return Cc3
-        with col1:
-            Cc3_latex, Cc3_value = Concrete_Compr_force_resultant3(gamma,deff,alpha2,fc,tw)
-            Cc3 = round(float(Cc3_value),2)
-            st.write("Concrete resultant compression force, Cc (kN):", Cc3)
+        
 
         #@handcalc()
-        def steel_force(bar_area: float, strains3: list) -> list:
-            """
-            Returns the force in each layer of reinforcement in kN
-            """
-            force_layer3 = []
-            for es in strain3:
-                force3 = ((bar_area*si.mm**2)*2*es*Es).prefix('k')
-                force_layer3.append(force3)
-            return force_layer3
-        force_layer3 = steel_force(bar_area,strains3=strain_per_layer3(deff, conc_cover, bar_layers, spacing_bars))
-        st.write(force_layer3)
+        #def Concrete_Compr_force_resultant3(gamma: float, deff: float, alpha2: float, fc: float, tw: float) -> float:
+            #"""
+            #Returns compression force resultant in the concrete at pure bending point in kN
+            #"""
+            #Cc3 =  (gamma * 0.1931120 * deff * alpha2 * fc * tw).prefix('k')
+            #return Cc3
+        #with col1:
+            #Cc3_latex, Cc3_value = Concrete_Compr_force_resultant3(gamma,deff,alpha2,fc,tw)
+            #Cc3 = round(float(Cc3_value),2)
+            #st.write("Concrete resultant compression force, Cc (kN):", Cc3)
+
+        #@handcalc()
+        #def steel_force(bar_area: float, strains3: list) -> list:
+            #"""
+            #Returns the force in each layer of reinforcement in kN
+            #"""
+            #force_layer3 = []
+            #for es in strain3:
+                #force3 = ((bar_area*si.mm**2)*2*es*Es).prefix('k')
+                #force_layer3.append(force3)
+            #return force_layer3
+        #force_layer3 = steel_force(bar_area,strains3=strain_per_layer3(deff, conc_cover, bar_layers, spacing_bars))
+        #st.write(force_layer3)
 
 
         
@@ -1254,8 +1268,3 @@ try:
             #st.markdown("Upload an Etabs File to continue")
 except KeyError:
             st.markdown("Etabs files uploaded incorrectly")
-
-
-
-
-
