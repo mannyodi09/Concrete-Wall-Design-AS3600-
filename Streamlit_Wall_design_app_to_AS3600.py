@@ -947,7 +947,7 @@ try:
             deff = (Lw - conc_cover - (10*si.mm) - reo_dia/2).prefix('unity')
             return deff
         deff = effective_depth(Lw, conc_cover, reo_dia)
-        st.write(deff)
+        #st.write(deff)
         # with col1:
         #     deff_latex, deff_value = effective_depth(Lw,conc_cover,reo_dia)
         #     deff = round(float(deff_value),2)
@@ -968,7 +968,7 @@ try:
             strains = []
             for i in range(len(bar_layers)):
                 deff_layer = deff - conc_cover - (i * spacing_bars)
-                es = (float(deff_layer  / deff) * 0.003)/1000
+                es = (float(deff_layer  / deff) * 0.003)#/1000
                 if es < 0:
                     es = 0
                 else:
@@ -976,8 +976,8 @@ try:
                 strains.append(es)
             return strains
 
-        #strain_result = strain_per_layer(deff, conc_cover, bar_layers, spacing_bars)
-        #st.write(strain_result)
+        strain_result = strain_per_layer(deff, conc_cover, bar_layers, spacing_bars)
+        st.write(strain_result)
 
         Es = 200000 * si.MPa
         def steel_compr_force(bar_area: float, strains: list) -> list:
@@ -1057,7 +1057,7 @@ try:
             return leverarm
         
         leverarm = LeverArm(pc, spacing_bars, bar_layers)
-        #st.write(leverarm)
+        st.write(leverarm)
 
         def cal_moment(force_layer: list, leverarm: list) -> list:
             moment = []
@@ -1110,7 +1110,7 @@ try:
             strains2 = []
             for i in range(len(bar_layers)):
                 deff_layer = deff*0.545 - conc_cover - (i * spacing_bars)
-                es = (float(deff_layer  / (deff*0.545)) * 0.003)/1000
+                es = (float(deff_layer  / (deff*0.545)) * 0.003)#/1000
                 #if es < 0:
                     #es = 0
                 #else:
@@ -1118,7 +1118,7 @@ try:
                 strains2.append(es)
             return strains2
         strain_result = strain_per_layer2(deff, conc_cover, bar_layers, spacing_bars)
-        #st.write(strain_result)
+        st.write(strain_result)
 
         def steel_force(bar_area: float, strains2: list) -> list:
             """
@@ -1157,7 +1157,7 @@ try:
         def cal_moment2(force_layer2: list, leverarm: list) -> list:
             moment2 = []
             for i in range(len(force_layer2)):
-                moment2.append(force_layer2[i]*leverarm[i])
+                moment2.append(force_layer2[i]*leverarm[i]*0.65)
             return moment2
         #moment2 = cal_moment2(force_layer2, leverarm)
         #st.write(moment2)
@@ -1181,6 +1181,9 @@ try:
         #1. At pure bending point, extreme tensile steel has already yielded (strain > 0.0025).
         #2. Concrete compressive fibre have reached ultimate striain at 0.003 and ku is unknown.
         #3. The stress in concrete cab be reqpresented using a rectangular stress block.
+            
+        with col1:
+            st.write('<p style="color: green;"><b>4. Pure bending</b></p>',unsafe_allow_html=True)
 
         def det_ku3(deff: float, conc_cover: float, bar_layers: list, spacing_bars: float) ->float:
             """
@@ -1203,88 +1206,85 @@ try:
                     for es in strains3:
                         force = (((bar_area * si.mm**2)) * 2 *es *Es).prefix('k')
                         force_layer3.append(force)
-                Cc3 = (gamma * ku3 * deff * si.m *alpha2 * fc *tw).prefix('k')
-                if -100 <= float(sum(force_layer3) + Cc3) <=100:
+                Cc3 = (gamma * ku3 * deff * alpha2 * fc *tw).prefix('k')
+                if -50 <= float(sum(force_layer3) + Cc3) <=50:
                     condition_met = True
                     break
-                    #st.write(f'ku: {ku3}, condition_met: {condition_met}')
+                    st.write(f'ku: {ku3}, condition_met: {condition_met}')
                 if condition_met:
                     break
                 index += 1
-            return strains3
+            return ku3
         
         ku3 = det_ku3(deff, conc_cover, bar_layers, spacing_bars)
         st.write(ku3)
 
 
-
-        # ku3 = det_ku3(deff, conc_cover, bar_layers, spacing_bars)
-        # st.write(ku3)
         
-        # def strain_per_layer3(deff: float, conc_cover: float, bar_layers: list, spacing_bars: float) -> list:
-        #     """
-        #     Returns the strain in each layer of reinforcement
-        #     """
-        #     strains3 = []
-        #     for i in range(len(bar_layers)):
-        #         deff_layer = deff*ku3 - conc_cover - (i * spacing_bars)
-        #         es = (float(deff_layer  / (deff*ku3)) * 0.003)/1000
-        #         #if es < 0:
-        #             #es = 0
-        #         #else:
-        #             #es = es
-        #         strains3.append(es)
-        #     return strains3
-        #  strain_result = strain_per_layer3(deff, conc_cover, bar_layers, spacing_bars)
-        #  st.write(strain_result)
+        def strain_per_layer3(deff: float, conc_cover: float, bar_layers: list, spacing_bars: float, ku3: float) -> list:
+            """
+            Returns the strain in each layer of reinforcement
+            """
+            strains4 = []
+            for i in range(len(bar_layers)):
+                deff_layer = deff * ku3 - conc_cover - (i * spacing_bars)
+                es = (float(deff_layer  / (deff*ku3)) * 0.003)#/1000
+                #if es < 0:
+                    #es = 0
+                #else:
+                    #es = es
+                strains4.append(es)
+            return strains4
+        strain_result = strain_per_layer3(deff, conc_cover, bar_layers, spacing_bars, ku3)
+        st.write(strain_result)
 
 
-        # @handcalc()
-        # def Concrete_Compr_force_resultant3(gamma: float, deff: float, alpha2: float, fc: float, tw: float) -> float:
-        #     """
-        #     Returns compression force resultant in the concrete at pure bending point in kN
-        #     """
-        #     Cc3 =  (gamma * ku3 * deff * alpha2 * fc * tw).prefix('k')
-        #     return Cc3
-        # with col1:
-        #     Cc3_latex, Cc3_value = Concrete_Compr_force_resultant3(gamma,deff,alpha2,fc,tw)
-        #     Cc3 = round(float(Cc3_value),2)
-        #     st.write("Concrete resultant compression force, Cc (kN):", Cc3)
+        @handcalc()
+        def Concrete_Compr_force_resultant3(gamma: float, deff: float, alpha2: float, fc: float, tw: float) -> float:
+            """
+            Returns compression force resultant in the concrete at pure bending point in kN
+            """
+            Cc3 =  (gamma * ku3 * deff * alpha2 * fc * tw).prefix('k')
+            return Cc3
+        with col1:
+            Cc3_latex, Cc3_value = Concrete_Compr_force_resultant3(gamma,deff,alpha2,fc,tw)
+            Cc3 = round(float(Cc3_value),2)
+            st.write("Concrete resultant compression force, Cc (kN):", Cc3)
 
-        # def steel_force3(bar_area: float, strains3: list) -> list:
-        #     """
-        #     Returns the force in each layer of reinforcement in kN
-        #     """
-        #     force_layer3 = []
-        #     for es in strains3:
-        #         force3 = ((bar_area*si.mm**2)*2*es*Es).prefix('k')
-        #         force_layer3.append(force3)
-        #     return force_layer3
-        # force_layer3 = steel_force3(bar_area,strains3=strain_per_layer3(deff, conc_cover, bar_layers, spacing_bars))
-        # st.write(force_layer3)
+        def steel_force3(bar_area: float, strains3: list) -> list:
+            """
+            Returns the force in each layer of reinforcement in kN
+            """
+            force_layer3 = []
+            for es in strains3:
+                force3 = ((bar_area*si.mm**2)*2*es*Es).prefix('k')
+                force_layer3.append(force3)
+            return force_layer3
+        force_layer3 = steel_force3(bar_area,strains3=strain_per_layer3(deff, conc_cover, bar_layers, spacing_bars, ku3))
+        st.write(force_layer3)
 
-        # def cal_moment3(force_layer3: list, leverarm: list) -> list:
-        #     moment3 = []
-        #     for i in range(len(force_layer3)):
-        #         moment3.append(force_layer3[i]*leverarm[i])
-        #     return moment3
-        # moment3 = cal_moment3(force_layer3, leverarm)
-        # st.write(moment3)
+        def cal_moment3(force_layer3: list, leverarm: list) -> list:
+            moment3 = []
+            for i in range(len(force_layer3)):
+                moment3.append(force_layer3[i]*leverarm[i])
+            return moment3
+        moment3 = cal_moment3(force_layer3, leverarm)
+        st.write(moment3)
 
-        # @handcalc()
-        # def sum_moment3(moment3: list, pc: float, Cc3: float, deff: float) -> float:
-        #     """
-        #     Returns the total bending moment due to all the forces about the plastic centroid in the section in kNm
-        #     """
-        #     abs_values = [abs(x) for x in moment3]
-        #     M3 = (((sum(abs_values))*0.65) + (((pc-((deff*ku3)/3))*(Cc3*si.kN))*0.65)).prefix('k')
-        #     return M3
-        # with col1:
-        #     force_layer3 = steel_force3(bar_area,strains3=strain_per_layer3(deff, conc_cover, bar_layers, spacing_bars))
-        #     moment3 = cal_moment3(force_layer3, leverarm)
-        #     M3_latex, M3_value = sum_moment3(moment3, pc, Cc3, deff)
-        #     M3 = round(float(M3_value),2)
-        #     st.write("Pure bending moment in the section (kNm):", M3)
+        @handcalc()
+        def sum_moment3(moment3: list, pc: float, Cc3: float, deff: float) -> float:
+            """
+            Returns the total bending moment due to all the forces about the plastic centroid in the section in kNm
+            """
+            abs_values = [abs(x) for x in moment3]
+            M3 = (((sum(abs_values))*0.6) + (((pc-((deff*ku3)/3))*(Cc3*si.kN))*0.6)).prefix('k')
+            return M3
+        with col1:
+            force_layer3 = steel_force3(bar_area,strains3=strain_per_layer3(deff, conc_cover, bar_layers, spacing_bars, ku3))
+            moment3 = cal_moment3(force_layer3, leverarm)
+            M3_latex, M3_value = sum_moment3(moment3, pc, Cc3, deff)
+            M3 = round(float(M3_value),2)
+            st.write("Pure bending moment in the section (kNm):", M3)
         
 
 
