@@ -4,6 +4,8 @@ import math as math
 from handcalcs.decorator import handcalc
 import forallpeople as si
 import numpy as np
+import plotly.express as px
+import plotly.graph_objects as go
  
 si.environment("structural")
 
@@ -897,7 +899,7 @@ try:
         #1. At squash load point all steel are yeilded.
         #2. Concrete have reached the ultimate compressive stress (𝛼1f'c)
         
-            st.write('<p style="color: green;"><b>Four points to determine the force-moment interaction diagram</b></p>',unsafe_allow_html=True)
+            st.write('<p style="color: green;"><b>Four points to determine the M-N interaction diagram</b></p>',unsafe_allow_html=True)
             st.write('<p style="color: green;"><b>1. Squash load</b></p>',unsafe_allow_html=True)
         tw = Pier_forces_col['b']*si.mm
         Lw = (Pier_forces_col['d']*si.mm).prefix('unity')
@@ -915,10 +917,10 @@ try:
             Nuo = round(float(Nuo_value),2)
             st.write("Squash Load, Nuo (kN):", Nuo)
             st.write("Bending Moment, M* (kNm):", 0)
-        with col2:
-            Nuo_latex, Nuo_value = squash_load(fc,Lw,tw)
-            st.markdown("Squash Load, Nuo:")
-            st.latex(Nuo_latex)
+        # with col2:
+        #     Nuo_latex, Nuo_value = squash_load(fc,Lw,tw)
+        #     st.markdown("Squash Load, Nuo:")
+        #     st.latex(Nuo_latex)
         
         
 
@@ -1180,7 +1182,7 @@ try:
         #Pure bending
         #1. At pure bending point, extreme tensile steel has already yielded (strain > 0.0025).
         #2. Concrete compressive fibre have reached ultimate striain at 0.003 and ku is unknown.
-        #3. The stress in concrete cab be reqpresented using a rectangular stress block.
+        #3. The stress in concrete can be represented using a rectangular stress block.
             
         with col1:
             st.write('<p style="color: green;"><b>4. Pure bending</b></p>',unsafe_allow_html=True)
@@ -1285,6 +1287,19 @@ try:
             M3_latex, M3_value = sum_moment3(moment3, pc, Cc3, deff)
             M3 = round(float(M3_value),2)
             st.write("Pure bending moment in the section (kNm):", M3)
+
+        
+
+        #M-N interaction graph plot
+        with col2:
+            st.write('<p style="color: green;"><b>M-N Interaction diagram</b></p>',unsafe_allow_html=True)
+        
+        fig = go.Figure(data=go.Scatter(x=[0, moment, moment2, moment3], y=[Nuo, N, N2, 0]))
+        st.plotly_chart(fig)
+
+
+            
+        
         
 
 
