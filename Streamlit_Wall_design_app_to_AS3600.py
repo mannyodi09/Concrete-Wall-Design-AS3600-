@@ -21,12 +21,13 @@ with tab1:
     st.markdown("This web-based application is designed to analyze ETABS pier output and to design reinforced concrete walls in accordance with AS3600:2018 to resist wind, earthquake and gravity actions.")
                 
     st.markdown("The manual execution of this design procedure can be onerous but leveraging the power of Python programming, this process have been streamlined and the workflow optimized to a reasonable extent thereby enhancing the efficiency of the design.")
-    st.markdown("<p style='color:red;'>Design assumptions and disclaimers</p>", unsafe_allow_html=True)
+    st.markdown("<p style='color:red;'>Design assumptions and limitations</p>", unsafe_allow_html=True)
 
     st.markdown("* This application assumes all walls are doubly reinforced, design of singly reinforced wall sections are outside the scope of this software.")
     st.markdown("* In cases where the wall aligns with the criteria specified in CL11.2.1(b) of AS 3600:2018 and necessitates a strut-and-tie design, the design engineer must assess whether the loading and support conditions justify a non-flexural analysis, and proceed with the design accordingly, this is outside the scope of this application.")
     st.markdown("* All walls are assumed to be braced and in determining the effective height of the walls, one-way buckling and a k-factor of 1 have been adopted.")
     st.markdown("* This application is not a substitute for critical thinking and professional judgement. Users should independently review and validate the results obtained and, when in doubt, seek guidance of experienced engineers. ")
+    st.markdown("* Slender walls will be addressed in future updates*")
 try:
     with tab2:
 
@@ -978,8 +979,8 @@ try:
                 strains.append(es)
             return strains
 
-        strain_result = strain_per_layer(deff, conc_cover, bar_layers, spacing_bars)
-        st.write(strain_result)
+        # strain_result = strain_per_layer(deff, conc_cover, bar_layers, spacing_bars)
+        # st.write(strain_result)
 
         Es = 200000 * si.MPa
         def steel_compr_force(bar_area: float, strains: list) -> list:
@@ -1005,7 +1006,7 @@ try:
         with col1:
             Cc_latex, Cc_value = Concrete_Compr_force_resultant(gamma,deff,alpha2,fc,tw)
             Cc = round(float(Cc_value),2)
-            st.write("Concrete resultant compression force, Cc (kN):", Cc)
+            #st.write("Concrete resultant compression force, Cc (kN):", Cc)
         #with col2:
             #Cc_latex, Cc_value = Concrete_Compr_force_resultant(gamma,deff,alpha2,fc,tw)
             #st.markdown("Concrete resultant compression force, Cc:")
@@ -1022,7 +1023,7 @@ try:
             force_layer = steel_compr_force(bar_area,strains=strain_per_layer(deff, conc_cover, bar_layers, spacing_bars))
             Ns_latex, Ns_value = steel_Compr_force_resultant(force_layer)
             Ns = round(float(Ns_value),2)
-            st.write("Steel resultant compression force, Ns (kN):", Ns)
+            #st.write("Steel resultant compression force, Ns (kN):", Ns)
 
         @handcalc()
         def total_compr_force(force_layer: list, Cc: float) -> float:
@@ -1035,7 +1036,7 @@ try:
             force_layer = steel_compr_force(bar_area,strains=strain_per_layer(deff, conc_cover, bar_layers, spacing_bars))
             N_latex, N_value = total_compr_force(force_layer ,Cc)
             N = round(float(N_value),2)
-            st.write("Total compression force in the section (kN):", N)
+            st.write("Net Axial force,N* (kN):", N)
 
         #Determine lever arm of each bar to the plastic centrioid
             
@@ -1059,7 +1060,7 @@ try:
             return leverarm
         
         leverarm = LeverArm(pc, spacing_bars, bar_layers)
-        st.write(leverarm)
+        # st.write(leverarm)
 
         def cal_moment(force_layer: list, leverarm: list) -> list:
             moment = []
@@ -1080,7 +1081,7 @@ try:
             moment = cal_moment(force_layer, leverarm)
             M_latex, M_value = sum_moment(moment, pc, Cc, deff)
             M = round(float(M_value),2)
-            st.write("Total bending moment in the section (kNm):", M)
+            st.write("Bending Moment, M* (kNm):", M)
 
 
         #Balanced point
@@ -1102,7 +1103,7 @@ try:
         with col1:
             Cc2_latex, Cc2_value = Concrete_Compr_force_resultant2(gamma,deff,alpha2,fc,tw)
             Cc2 = round(float(Cc2_value),2)
-            st.write("Concrete resultant compression force, Cc (kN):", Cc2)
+            #st.write("Concrete resultant compression force, Cc (kN):", Cc2)
 
 
         def strain_per_layer2(deff: float, conc_cover: float, bar_layers: list, spacing_bars: float) -> list:
@@ -1119,8 +1120,8 @@ try:
                     #es = es
                 strains2.append(es)
             return strains2
-        strain_result = strain_per_layer2(deff, conc_cover, bar_layers, spacing_bars)
-        st.write(strain_result)
+        # strain_result = strain_per_layer2(deff, conc_cover, bar_layers, spacing_bars)
+        # st.write(strain_result)
 
         def steel_force(bar_area: float, strains2: list) -> list:
             """
@@ -1153,7 +1154,7 @@ try:
             force_layer2 = steel_force(bar_area,strains2=strain_per_layer2(deff, conc_cover, bar_layers, spacing_bars))
             N2_latex, N2_value = total_force(force_layer ,Cc2)
             N2 = round(float(N2_value),2)
-            st.write("Net axial force in the section (kN):", N2)
+            st.write("Net Axial force,N* (kN):", N2)
 
 
         def cal_moment2(force_layer2: list, leverarm: list) -> list:
@@ -1176,7 +1177,7 @@ try:
             moment2 = cal_moment2(force_layer2, leverarm)
             M2_latex, M2_value = sum_moment2(moment2, pc, Cc2, deff)
             M2 = round(float(M2_value),2)
-            st.write("Total bending moment in the section (kNm):", M2)
+            st.write("Bending Moment,M* (kNm):", M2)
 
 
         #Pure bending
@@ -1219,7 +1220,7 @@ try:
             return ku3
         
         ku3 = det_ku3(deff, conc_cover, bar_layers, spacing_bars)
-        st.write(ku3)
+        #st.write(ku3)
 
 
         
@@ -1237,8 +1238,8 @@ try:
                     #es = es
                 strains4.append(es)
             return strains4
-        strain_result = strain_per_layer3(deff, conc_cover, bar_layers, spacing_bars, ku3)
-        st.write(strain_result)
+        # strain_result = strain_per_layer3(deff, conc_cover, bar_layers, spacing_bars, ku3)
+        # st.write(strain_result)
 
 
         @handcalc()
@@ -1251,7 +1252,7 @@ try:
         with col1:
             Cc3_latex, Cc3_value = Concrete_Compr_force_resultant3(gamma,deff,alpha2,fc,tw)
             Cc3 = round(float(Cc3_value),2)
-            st.write("Concrete resultant compression force, Cc (kN):", Cc3)
+            #st.write("Concrete resultant compression force, Cc (kN):", Cc3)
 
         def steel_force3(bar_area: float, strains3: list) -> list:
             """
@@ -1263,7 +1264,7 @@ try:
                 force_layer3.append(force3)
             return force_layer3
         force_layer3 = steel_force3(bar_area,strains3=strain_per_layer3(deff, conc_cover, bar_layers, spacing_bars, ku3))
-        st.write(force_layer3)
+        # st.write(force_layer3)
 
         def cal_moment3(force_layer3: list, leverarm: list) -> list:
             moment3 = []
@@ -1271,7 +1272,7 @@ try:
                 moment3.append(force_layer3[i]*leverarm[i])
             return moment3
         moment3 = cal_moment3(force_layer3, leverarm)
-        st.write(moment3)
+        # st.write(moment3)
 
         @handcalc()
         def sum_moment3(moment3: list, pc: float, Cc3: float, deff: float) -> float:
@@ -1286,16 +1287,93 @@ try:
             moment3 = cal_moment3(force_layer3, leverarm)
             M3_latex, M3_value = sum_moment3(moment3, pc, Cc3, deff)
             M3 = round(float(M3_value),2)
-            st.write("Pure bending moment in the section (kNm):", M3)
+            st.write("Net Axial force,N* (kN):", 0)
+            st.write("Bending Moment,M* (kNm):", M3)
+            
 
         
 
         #M-N interaction graph plot
         with col2:
-            st.write('<p style="color: green;"><b>M-N Interaction diagram</b></p>',unsafe_allow_html=True)
+            #st.write('<p style="color: green;"><b>M-N Interaction diagram</b></p>',unsafe_allow_html=True)
+        #Squash_load,
+            #N_s = squash_load(fc,Lw,tw)
+            fig = go.Figure()
+            fig.add_trace(
+                go.Scatter(
+                    x=[0, float(M),float(M2),float(M3)],
+                    y=[float(Nuo),float(N),float(N2), 0],
+                    name = 'M-N Curve',
+                    line_shape = 'spline'
+                    )
+                    
+                    )
+            fig.add_trace(
+                go.Line(
+                    x=[0,abs(Pier_forces_col['M3(Compr)'])],
+                    y=[0,abs(Pier_forces_col['P(Compr)'])],
+                    name = 'Max Compression Case'
+                    )
+                    )
+            fig.add_trace(
+                go.Line(
+                    x=[0,abs(Pier_forces_col['P(Max M3)'])],
+                    y=[0,abs(Pier_forces_col['M3(Max M3)'])],
+                    name = 'Max M3 Case'
+                    )
+                    )
+            fig.update_layout(
+                title = 'Wall M-N interaction diagram',
+                xaxis_title='Bending Moment (kNm)', 
+                yaxis_title='Axial Force (kN)',
+                xaxis=dict(tickformat=',.0f'),
+                yaxis=dict(tickformat=',.0f'),
+                )
         
-        fig = go.Figure(data=go.Scatter(x=[0, moment, moment2, moment3], y=[Nuo, N, N2, 0]))
-        st.plotly_chart(fig)
+            st.plotly_chart(fig)
+
+        #Column slenderness check
+        N = abs(Pier_forces_col['P(Compr)'])
+        Hw2 = (Pier_forces_col['H']*si.mm).prefix('unity')
+        Lw = (Pier_forces_col['d']*si.mm).prefix('unity')
+        def alphac(N: float, Nuo: float, Hw: float) -> float:
+            """
+            Return the alphac value of the wall.
+            """
+            #alphac = N/(0.6*Nuo)
+            if N/(0.6*Nuo) < 0.15:
+                alphac = math.sqrt(1/((3.5*Hw2)/(0.6*Nuo)))
+            else:
+                alphac = math.sqrt(2.25-((2.5*N)/(0.6*Nuo)))
+            return alphac
+        alphac = alphac(N, Nuo, Hw)
+        #st.write (alphac)
+
+        M11 = 0.1*abs(Pier_forces_col['M3(Compr)'])
+        M22 = abs(Pier_forces_col['M3(Compr)'])
+
+        #@handcalc()
+        def shortcolumn(Hw: float, alphac: float,fc: float, M11: float, M22: float) -> float:
+            M11M22 = M11/M22
+            req1 = Hw2/(Lw/3)
+            req2 = alphac*(38-(fc/15))*(1+M11M22)
+            if req1 <= max(25,req2):
+                st.write("Wall is STOCKY, no moment magnification required!")
+            else:
+                st.write('Wall is SLENDER, moment magnification required!')
+            return shortcolumn
+        #slendercheck = shortcolumn(Hw, alphac,fc, M11, M22)
+        #st.write(slendercheck)
+
+        with col2:
+            st.write('<p style="color: green;"><b>Slenderness check</b></p>',unsafe_allow_html=True)
+            slendercheck = shortcolumn(Hw, alphac,fc, M11, M22)
+            #st.write("Slenderness check:", slendercheck)
+
+
+
+
+
 
 
             
