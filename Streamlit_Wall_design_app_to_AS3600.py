@@ -553,7 +553,7 @@ try:
             #COMPRESSION CAPACITY CHECK
 
             with col1:
-                st.write("<u>1. DESIGN AXIAL CAPACITY CHECK (φNu)</u>",unsafe_allow_html=True)
+                st.write('<p style="color: green;"><b>1. Design axial capacity check (φNu)</b></p>',unsafe_allow_html=True)
                 #st.caption(""" ##### Design Assumptions: 
 
             #(a): Vertical and horizontal reinforcement is provided on both wall faces and divided equally between the two wall faces.
@@ -662,7 +662,7 @@ try:
                     #1. Shear strength excluding wall reinforcement
 
                     with col1:
-                        st.write("<u>2. IN-PLANE SHEAR CAPACITY CHECK (φVu)</u>",unsafe_allow_html=True)
+                        st.write('<p style="color: green;"><b>2. In-plane shear capacity check (φVu)</b></p>',unsafe_allow_html=True)
                         V = abs(Pier_forces['V2(Max V2)'])
                         st.write("Shear force in wall (kN):", V)
                         st.markdown("(a)Shear strength excluding wall reinforcement(cl11.6.3)")
@@ -771,7 +771,7 @@ try:
 
                     #3. Detailing
                     with col1:
-                        st.write("<u>3. REINFORCEMENT DETAILING</u>",unsafe_allow_html=True)
+                        st.write('<p style="color: green;"><b>3. Reinforcement Detailing</b></p>',unsafe_allow_html=True)
                         st.markdown("Vertical Reinforcement: Minimum vertical reinforcement is required.")
                     with col1:
                         st.write("Minimum reo ratio in vertical direction(CL11.7.1):", pw)
@@ -852,7 +852,7 @@ try:
             #st.number_input (label="Left cover(mm):",min_value=5,max_value=100,step=5)
             cover_1 = st.number_input (label="Cover to reinforcement(mm):",min_value=5,max_value=100,step=5)
             #cover_2 = st.number_input (label="Bottom cover(mm):",min_value=5,max_value=100,step=5)
-            concrete_fc = st.selectbox("Concrete strength, f'c (MPa)",options=('20','25','32','40','50','65','80','100'))
+            concrete_fc = st.selectbox("Concrete strength, f'c (MPa)",options=('25','32','40','50','65','80','100'))
             fsy = 500
             st.write("Yield strength of reinforcing steel (MPa):", fsy)
         
@@ -899,9 +899,9 @@ try:
     
         #1. At squash load point all steel are yeilded.
         #2. Concrete have reached the ultimate compressive stress (𝛼1f'c)
-        
-            st.write('<p style="color: green;"><b>Four points to determine the M-N interaction diagram</b></p>',unsafe_allow_html=True)
-            st.write('<p style="color: green;"><b>1. Squash load</b></p>',unsafe_allow_html=True)
+        with col2:
+            st.write('<p style="color: green;"><b>1. Four points to determine the M-N interaction diagram</b></p>',unsafe_allow_html=True)
+            st.write('<p style="color: green;"><b>A. Squash load</b></p>',unsafe_allow_html=True)
         tw = Pier_forces_col['b']*si.mm
         Lw = (Pier_forces_col['d']*si.mm).prefix('unity')
         fc = float(concrete_fc)*si.MPa
@@ -913,7 +913,7 @@ try:
             Asc = bar_area*(left_bars+right_bars)*si.mm**2
             Nuo = 0.65*((alpha1 * fc * tw * Lw) + (Asc * fsy *si.MPa)).prefix('k')
             return Nuo
-        with col1:
+        with col2:
             Nuo_latex, Nuo_value = squash_load(fc,Lw,tw)
             Nuo = round(float(Nuo_value),2)
             st.write("Squash Load, Nuo (kN):", Nuo)
@@ -932,8 +932,8 @@ try:
         #The stress in concrete can be reqpresented using a rectangular stress block
 
         #Determine compression force in each layer of steel.
-        with col1:
-            st.write('<p style="color: green;"><b>2. Decompression point</b></p>',unsafe_allow_html=True)
+        with col2:
+            st.write('<p style="color: green;"><b>B. Decompression point</b></p>',unsafe_allow_html=True)
         column_bars = int(right_bars)
         bar_layers = [f'layer {i}' for i in range(1, column_bars + 1 )]
         #st.write(bar_layers)
@@ -1003,7 +1003,7 @@ try:
             ku = 1
             Cc =  (gamma * ku * deff * alpha2 * fc * tw).prefix('k')
             return Cc
-        with col1:
+        with col2:
             Cc_latex, Cc_value = Concrete_Compr_force_resultant(gamma,deff,alpha2,fc,tw)
             Cc = round(float(Cc_value),2)
             #st.write("Concrete resultant compression force, Cc (kN):", Cc)
@@ -1019,7 +1019,7 @@ try:
             """
             Ns = (sum(force_layer)).prefix('k')
             return Ns
-        with col1:
+        with col2:
             force_layer = steel_compr_force(bar_area,strains=strain_per_layer(deff, conc_cover, bar_layers, spacing_bars))
             Ns_latex, Ns_value = steel_Compr_force_resultant(force_layer)
             Ns = round(float(Ns_value),2)
@@ -1032,7 +1032,7 @@ try:
             """
             N = 0.65*(sum(force_layer) + Cc*si.kN).prefix('k')
             return N
-        with col1:
+        with col2:
             force_layer = steel_compr_force(bar_area,strains=strain_per_layer(deff, conc_cover, bar_layers, spacing_bars))
             N_latex, N_value = total_compr_force(force_layer ,Cc)
             N = round(float(N_value),2)
@@ -1077,7 +1077,7 @@ try:
             """
             M = ((sum(moment) + ((pc-(deff/3))*Cc*si.kN))*0.65).prefix('k')
             return M
-        with col1:
+        with col2:
             moment = cal_moment(force_layer, leverarm)
             M_latex, M_value = sum_moment(moment, pc, Cc, deff)
             M = round(float(M_value),2)
@@ -1090,8 +1090,8 @@ try:
         #2. Concrete compressive fibre have reached ultimate striain at 0.003, ku = 0.545, kud = 0.545d
         #The stress in concrete cab be reqpresented using a rectangular stress block
 
-        with col1:
-            st.write('<p style="color: green;"><b>3. Balanced point</b></p>',unsafe_allow_html=True)
+        with col2:
+            st.write('<p style="color: green;"><b>C. Balanced point</b></p>',unsafe_allow_html=True)
         @handcalc()
         def Concrete_Compr_force_resultant2(gamma: float, deff: float, alpha2: float, fc: float, tw: float) -> float:
             """
@@ -1100,7 +1100,7 @@ try:
             ku = 0.545
             Cc2 =  (gamma * ku * deff * alpha2 * fc * tw).prefix('k')
             return Cc2
-        with col1:
+        with col2:
             Cc2_latex, Cc2_value = Concrete_Compr_force_resultant2(gamma,deff,alpha2,fc,tw)
             Cc2 = round(float(Cc2_value),2)
             #st.write("Concrete resultant compression force, Cc (kN):", Cc2)
@@ -1150,7 +1150,7 @@ try:
                 net_axial = compr_forces - abs(tensile_forces)
             N2 = 0.65*(net_axial + Cc2*si.kN).prefix('k')
             return N2
-        with col1:
+        with col2:
             force_layer2 = steel_force(bar_area,strains2=strain_per_layer2(deff, conc_cover, bar_layers, spacing_bars))
             N2_latex, N2_value = total_force(force_layer ,Cc2)
             N2 = round(float(N2_value),2)
@@ -1173,7 +1173,7 @@ try:
             abs_values = [abs(x) for x in moment2]
             M2 = (((sum(abs_values))*0.65) + (((pc-((deff*0.545)/3))*(Cc2*si.kN))*0.65)).prefix('k')
             return M2
-        with col1:
+        with col2:
             moment2 = cal_moment2(force_layer2, leverarm)
             M2_latex, M2_value = sum_moment2(moment2, pc, Cc2, deff)
             M2 = round(float(M2_value),2)
@@ -1185,8 +1185,8 @@ try:
         #2. Concrete compressive fibre have reached ultimate striain at 0.003 and ku is unknown.
         #3. The stress in concrete can be represented using a rectangular stress block.
             
-        with col1:
-            st.write('<p style="color: green;"><b>4. Pure bending</b></p>',unsafe_allow_html=True)
+        with col2:
+            st.write('<p style="color: green;"><b>D. Pure bending</b></p>',unsafe_allow_html=True)
 
         def det_ku3(deff: float, conc_cover: float, bar_layers: list, spacing_bars: float) ->float:
             """
@@ -1249,7 +1249,7 @@ try:
             """
             Cc3 =  (gamma * ku3 * deff * alpha2 * fc * tw).prefix('k')
             return Cc3
-        with col1:
+        with col2:
             Cc3_latex, Cc3_value = Concrete_Compr_force_resultant3(gamma,deff,alpha2,fc,tw)
             Cc3 = round(float(Cc3_value),2)
             #st.write("Concrete resultant compression force, Cc (kN):", Cc3)
@@ -1282,7 +1282,7 @@ try:
             abs_values = [abs(x) for x in moment3]
             M3 = (((sum(abs_values))*0.6) + (((pc-((deff*ku3)/3))*(Cc3*si.kN))*0.6)).prefix('k')
             return M3
-        with col1:
+        with col2:
             force_layer3 = steel_force3(bar_area,strains3=strain_per_layer3(deff, conc_cover, bar_layers, spacing_bars, ku3))
             moment3 = cal_moment3(force_layer3, leverarm)
             M3_latex, M3_value = sum_moment3(moment3, pc, Cc3, deff)
@@ -1317,8 +1317,8 @@ try:
                     )
             fig.add_trace(
                 go.Line(
-                    x=[0,abs(Pier_forces_col['P(Max M3)'])],
-                    y=[0,abs(Pier_forces_col['M3(Max M3)'])],
+                    x=[0,abs(Pier_forces_col['M3(Max M3)'])],
+                    y=[0,abs(Pier_forces_col['P(Max M3)'])],
                     name = 'Max M3 Case'
                     )
                     )
@@ -1328,6 +1328,7 @@ try:
                 yaxis_title='Axial Force (kN)',
                 xaxis=dict(tickformat=',.0f'),
                 yaxis=dict(tickformat=',.0f'),
+                #height = 800
                 )
         
             st.plotly_chart(fig)
@@ -1369,34 +1370,160 @@ try:
             st.write('<p style="color: green;"><b>Slenderness check</b></p>',unsafe_allow_html=True)
             slendercheck = shortcolumn(Hw, alphac,fc, M11, M22)
             #st.write("Slenderness check:", slendercheck)
-
-
-
-
-
-
-
-            
-        
         
 
+        #INPLANE SHEAR CHECK
+                    #1. Shear strength excluding wall reinforcement
+
+        with col1:
+            st.write('<p style="color: green;"><b>2. In-plane shear capacity check (φVu)</b></p>',unsafe_allow_html=True)
+            V = abs(Pier_forces_col['V2(Max V2)'])
+            st.write("Shear force in wall (kN):", V)
+            st.markdown("(a)Shear strength excluding wall reinforcement(cl11.6.3)")
+
+            Lw = Pier_forces_col['d'] * si.mm
+            Hw = Pier_forces_col['H'] * si.mm
+            tw = Pier_forces_col['b'] * si.mm
+            fc = float(concrete_fc)*si.MPa
+            @handcalc()
+            def Shear_strength_ex_reo2(tw: float, Lw: float, Hw: float, fc: float) -> float:
+                """
+                Returns the shear strength of the wall excluding wall reinforcement where Hw/Lw <= 1
+                """
+                Vuc = (((0.66*math.sqrt(fc)*si.MPa)-0.21*(Hw/Lw)*(math.sqrt(fc)*si.MPa))*0.8*Lw*tw).prefix('k')
+                return Vuc
+        with col1:
+            if Hw/Lw < 1 or Hw/Lw == 1:
+                Vuc_latex, Vuc_value = Shear_strength_ex_reo2(tw,Lw,Hw,fc)
+                Vuc = round(float(Vuc_value),2)
+                st.write("In-plane capacity excluding wall reinforcement, Vuc (kN)):", Vuc)
+        with col2:
+            if Hw/Lw < 1 or Hw/Lw == 1:
+                Vuc_latex, Vuc_value = Shear_strength_ex_reo2(tw,Lw,Hw,fc)
+                st.markdown("In-plane capacity excluding wall reinforcement:")
+                st.latex(Vuc_latex)
+
+        @handcalc()
+        def Shear_strength_ex_reo3(tw: float, Lw: float, Hw: float, fc: float) -> float:
+            """
+            Returns the shear strength of the wall excluding wall reinforcement where Hw/Lw > 1
+            """
+            Vuc2 = (((0.05*(math.sqrt(fc))*si.MPa)+((0.1*(math.sqrt(fc))*si.MPa)/((Hw/Lw)-1)))*0.8*Lw*tw).prefix('k')
+            return Vuc2
+        with col1:
+            if Hw/Lw > 1:
+                Vuc2_latex, Vuc2_value = Shear_strength_ex_reo3(tw,Lw,Hw,fc)
+                Vuc2 = round(float(Vuc2_value),2)
+                st.write("In-plane capacity excluding wall reinforcement, Vuc (kN)):", Vuc2)
+        with col2:
+            if Hw/Lw > 1:
+                Vuc2_latex, Vuc2_value = Shear_strength_ex_reo3(tw,Lw,Hw,fc)
+                st.markdown("In-plane capacity excluding wall reinforcement:")
+                st.latex(Vuc_latex)
+
+        #2. Contribution to shear strength by wall reinforcement
+        with col1:
+            st.markdown("(b) Contribution to shear strength by wall reinforcement(cl11.6.4)")
+            pw = 0.0025
+            st.write("Minimum reo ratio in horizontal direction(cl11.7.1):", pw)
+            fsy = 500
+            st.write("Assumed steel yield strength (MPa):", fsy)
+            Horz_bar_dia2 = st.selectbox("Horz. bar diameter (mm)",options=('10','12','16','20','24','28','32'))
+            Horz_bar_spc2 = st.selectbox("Horz. bar spacing (mm)",options=('100','150','200','250','300','350','400'))
+        @handcalc()
+        def hor_reo_ratio2(Horz_bar_dia2: float, Horz_bar_spc: float,tw: float):
+            """
+            Returns the reo ratio in the horizontal direction
+            """
+            pw3 = ((math.pi*float(Horz_bar_dia2)**2/4)*(1000/float(Horz_bar_spc2))*2)/(1000*float(tw))
+            return pw3
+        with col1:
+            pw3_latex, pw3_value = hor_reo_ratio2(Horz_bar_dia2,Horz_bar_spc2,tw)
+            pw3 = round(float(pw3_value),5)
+            st.write("Horizontal reo ratio(pw)", pw3)
+            if pw3 < 0.0025:
+                st.write('<p style="color: red;">Horizontal reo ratio is less than 0.0025, NG!!</p>', unsafe_allow_html=True)
+                #else:
+                #st.write('<p style="color: green;">Wall segment compression capacity, OKAY!!</p>', unsafe_allow_html=True)
+        
+        
+        spacing_bars2 = ((Lw - (conc_cover * 2))/(right_bars - 1)).prefix('m')
+        #st.write(spacing_bars2)
+        @handcalc()
+        def vert_reo_ratio(reo_bar_size: float, spacing_bars2: float,tw: float):
+            """
+            Returns the reo ratio in the vertical direction
+            """
+            pw4 = ((math.pi*float(reo_bar_size)**2/4)*(1000/float(spacing_bars2))*2)/(1000*float(tw))
+            return pw4
+        with col1:
+            pw4_latex, pw4_value = vert_reo_ratio(reo_bar_size, spacing_bars2,tw)
+            pw4 = round(float(pw4_value),5)
+            st.write("Vertical reo ratio(pw)", pw4)
+
+        @handcalc()
+        def Shear_strength_with_reo2(pw3: float, Lw: float, fsy: float) -> float:
+            """
+            Returns the contribution to shear strength by wall reinforcement
+            """
+            Vus2 = (max(0.0025,((pw3 * fsy*si.MPa)*0.8*Lw*tw))).prefix('k')
+            return Vus2
+        with col1:
+            Vus2_latex, Vus2_value = Shear_strength_with_reo2(pw3,Lw,fsy)
+            Vus2 = round(float(Vus2_value),2)
+            st.write("In-plane capacity contribution from wall reinforcement, Vus (kN)):", Vus2)
+        with col2:
+            Vus2_latex, Vus2_value = Shear_strength_with_reo2(pw,Lw,fsy)
+            st.markdown("In-plane capacity contribution from wall reinforcement:")
+            st.latex(Vus2_latex)
+
+            phi = 0.65
+        @handcalc()
+        def strength_in_shear2(Vuc2: float, Vus2: float) -> float:
+            """
+            Returns the design strength of the wall subjected to in-plane shear forces
+            """
+            Vu2 = (phi*(Vuc2*si.kN + Vus2*si.kN)).prefix('k')
+            return Vu2
+        with col1:
+            Vu2_latex, Vu2_value = strength_in_shear2(Vuc2,Vus2)
+            Vu2 = round(float(Vu2_value),2)
+            st.write("Wall strength in shear, Vu (kN):", Vu2)
+            if Vu2 < V:
+                st.write('<p style="color: red;">Shear capacity exceeded, NG!!</p>', unsafe_allow_html=True)
+            else:
+                st.write('<p style="color: green;">Shear demand, OKAY!!</p>', unsafe_allow_html=True)
+        with col2:
+            Vu2_latex, Vu2_value = strength_in_shear2(Vuc2,Vus2)
+            st.markdown("Wall strength in shear:")
+            st.latex(Vu2_latex)
+
+        with col1:
+            st.write('<p style="color: green;"><b>3. Reinforcement detailing</b></p>',unsafe_allow_html=True)
+            if float(fc)<51:
+                if pw4 < 0.01 and pw3 > 0.0025:
+                    st.write('<p style="color: green;">Restraint to vertical reinforcement is not required</p>', unsafe_allow_html=True)
+                elif pw4 > 0.01 or pw3 < 0.0025:
+                    st.write('<p style="color: red;">Restraint to vertical reinforcement is not required if wall vertical reinforcmement is not used as compressive reinforcment(cl11.7.4)</p>', unsafe_allow_html=True)
+            elif float(fc)>51:
+                st.write('<p style="color: green;">Provide restraint to vertical reinforcement in accordance with clause 14.5.4</p>', unsafe_allow_html=True)
+
+                
+                    
+                
 
 
         
-        
-        
-
 
 
     with tab6:
-
         st.markdown("<p style='font-size:40px;'>Contact me</p>", unsafe_allow_html=True)
 
         st.markdown("**Name**: Emmanuel Eigbedion")
 
 
         st.markdown("**Email**: eeigbedion@edgece.com")
-#except NameError:
-            #st.markdown("Upload an Etabs File to continue")
+except NameError:
+            st.markdown("Upload an Etabs File to continue")
 except KeyError:
             st.markdown("Etabs files uploaded incorrectly")
