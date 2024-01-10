@@ -24,10 +24,10 @@ with tab1:
     st.markdown("<p style='color:red;'>Design assumptions and limitations</p>", unsafe_allow_html=True)
 
     st.markdown("* This application assumes all walls are doubly reinforced, design of singly reinforced wall sections are outside the scope of this software.")
-    st.markdown("* In cases where the wall aligns with the criteria specified in CL11.2.1(b) of AS 3600:2018 and necessitates a strut-and-tie design, the design engineer must assess whether the loading and support conditions justify a non-flexural analysis, and proceed with the design accordingly, this is outside the scope of this application.")
+    st.markdown("* In cases where the wall aligns with the criteria specified in cl11.2.1(b) of AS 3600:2018 and necessitates a strut-and-tie design, the design engineer must assess whether the loading and support conditions justify a non-flexural analysis, and proceed with the design accordingly, this is outside the scope of this application.")
     st.markdown("* All walls are assumed to be braced and in determining the effective height of the walls, one-way buckling and a k-factor of 1 have been adopted.")
     st.markdown("* This application is not a substitute for critical thinking and professional judgement. Users should independently review and validate the results obtained and, when in doubt, seek guidance of experienced engineers. ")
-    st.markdown("* Slender walls will be addressed in future updates*")
+    st.markdown("* Slender walls will be addressed in future updates.")
 try:
     with tab2:
 
@@ -561,11 +561,11 @@ try:
             #(b): Have a ratio of effective height to thickness that does not exceed 30 for doubly reinforced walls.""")
 
                 #if Soil_classification == "De - Deep or soft soil":
-                    #st.markdown("Simplified design method for compression forces does not apply (CL.11.5.2(c)), design wall as column as per AS3600:2018 Section 10")
+                    #st.markdown("Simplified design method for compression forces does not apply (cl.11.5.2(c)), design wall as column as per AS3600:2018 Section 10")
                 #elif Soil_classification == "Ee - Very soft soil":
-                    #st.markdown("Simplified design method for compression forces does not apply (CL.11.5.2(c)), design wall as column as per AS3600:2018 Section 10")
+                    #st.markdown("Simplified design method for compression forces does not apply (cl.11.5.2(c)), design wall as column as per AS3600:2018 Section 10")
                 #else:
-                    #st.markdown("Simplified design method for compression forces applies (CL.11.5)")
+                    #st.markdown("Simplified design method for compression forces applies (cl.11.5)")
                 concrete_strength = st.selectbox("Concrete strength f'c (MPa)",options=('20','25','32','40','50','65','80','100'))
                 try:
                     with col1:
@@ -1504,7 +1504,7 @@ try:
                 if pw4 < 0.01 and pw3 > 0.0025:
                     st.write('<p style="color: green;">Restraint to vertical reinforcement is not required</p>', unsafe_allow_html=True)
                 elif pw4 > 0.01 or pw3 < 0.0025:
-                    st.write('<p style="color: red;">Restraint to vertical reinforcement is not required if wall vertical reinforcmement is not used as compressive reinforcment(cl11.7.4)</p>', unsafe_allow_html=True)
+                    st.write('<p style="color: red;">phi x Nuo check</p>', unsafe_allow_html=True)
             elif float(fc)>51:
                 st.write('<p style="color: green;">Provide restraint to vertical reinforcement in accordance with clause 14.5.4</p>', unsafe_allow_html=True)
 
