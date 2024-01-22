@@ -83,7 +83,7 @@ try:
             p_tens_dtype = p_tens_max.sort_index()
             #st.dataframe(p_tens_dtype)
 
-            #MIN COMPRESSION IN PIERS CHECK
+            #MIN COMPRESSION IN PIERS CHECK2
             mask = df_combos['P'] < 0
             p_tens_min_compr = df_combos.loc[mask]
             p_tens_min_compr['P'] = pd.to_numeric(p_tens_min_compr['P'], errors='coerce')
@@ -511,7 +511,7 @@ try:
             st.dataframe(design_col)
             #df2
             #df2['Net tension stress'] = pd.to_numeric(df2['Net tension stress'], errors='coerce')
-            mask = df2['Net tension stress'] == 0.000000
+            mask = df2['Net tension stress'] == 0.0000000
             design_wall = df2.loc[mask]
             st.markdown("**Walls to be designed using simplified method**")
             st.dataframe(design_wall)
